@@ -1,4 +1,3 @@
-
 .boxed {
 	
 	font-family: 'Lato';
@@ -13,6 +12,10 @@
     margin: 10px;
     
 
+}
+
+.firstBox {
+	margin-left: 110px;
 }
 
 /* unvisited link */

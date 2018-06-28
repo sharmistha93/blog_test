@@ -234,11 +234,6 @@
 
 
 
-
-
-
-
-
     // Set-up the canvas and add our event handlers after the page has loaded
     function init() {
         // Get the specific canvas element from the HTML document
