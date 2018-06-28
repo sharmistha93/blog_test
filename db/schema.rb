@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_06_19_185754) do
+ActiveRecord::Schema.define(version: 2018_06_26_152741) do
+
+  create_table "molecules", force: :cascade do |t|
+    t.string "name"
+    t.string "central_atom"
+    t.string "other_atoms"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "num_atoms"
+  end
 
   create_table "posts", force: :cascade do |t|
     t.string "title"

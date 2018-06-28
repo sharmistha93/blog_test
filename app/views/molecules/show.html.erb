@@ -1,0 +1,36 @@
+
+<body class="sketchbody">
+ <div id="sketchpadapp">
+    <div class="leftside">
+    	<div class = " moleculeTitle">
+			<h1><%= @molecule.name %></h1>
+		</div>
+    </div>
+    
+    <div class="rightside">
+        <canvas id="sketchpad" height="560" width="600">
+        </canvas>
+        <div class="row menu">
+        	<div class="column left">
+        		<input class="button" type="submit" value="CLEAR" onclick="clearCanvas(canvas,ctx);">
+        	</div>
+        	
+        </div>
+    </div>
+
+ </div>
+ <script type="text/javascript">
+
+        
+        window.onload = init();
+        
+    	var numberAtoms = <%= @numAtoms %>;
+        var centralAtom = "<%= @cenAtom %>"; 
+        var otherAtoms = "<%= @othAtoms %>";
+        
+
+        addAtoms(numberAtoms, centralAtom, otherAtoms);
+
+</script>
+</body>
+

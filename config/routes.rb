@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   resources :posts
+  resources :molecules
 
-  root 'posts#index'
+  root 'molecules#index'
   
 end

@@ -1,0 +1,10 @@
+name,central_atom,other_atoms,num_atoms
+Water,H,O O,3
+Ozone,O,O,2
+Carbon Dioxide,C,O O,3
+Hydrogen Cyanide,C,H N,3
+Hydrofluoric Acid,F,H,2
+Formaldehyde,C,H H O,4
+Ammonia,N,H H H,4
+Borane,B,H H H,4
+Methane,C,H H H H,5

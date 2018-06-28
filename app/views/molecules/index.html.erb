@@ -1,0 +1,28 @@
+
+<% counter = 0 %>
+<div class="row">
+
+	<% @molecules.each do |molecule| %>
+		<% counter = counter + 1 %>
+		
+		<%= link_to molecule, class: 'col-md-3 boxed', :action => 'go' do %>
+			<p><%=molecule.name%></p>
+		<% end %>
+		
+		<% if counter % 3 == 0 %>
+			</div>
+			<div class="row">
+		<% end %>
+		
+
+	<% end %>
+</div>
+
+
+
+
+
+
+ 
+
+

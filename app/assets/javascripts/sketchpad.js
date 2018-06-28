@@ -1,6 +1,11 @@
 // Variables for referencing the canvas and 2dcanvas context
     var canvas,ctx;
     var radius = 4;
+    var numAtoms;
+    var centralAtom;
+    var otherAtoms;
+    var d = new Date();
+    var points = [];
 
     // Variables to keep track of the mouse position and left-button status 
     var mouseX,mouseY,mouseDown=0;
@@ -36,11 +41,11 @@
         // Draw a filled line
         ctx.beginPath();
 
-    // First, move to the old (previous) position
-    ctx.moveTo(lastX,lastY);
+        // First, move to the old (previous) position
+        ctx.moveTo(lastX,lastY);
 
-    // Now draw a line to the current touch/pointer position
-    ctx.lineTo(x,y);
+        // Now draw a line to the current touch/pointer position
+        ctx.lineTo(x,y);
 
         // Set the line thickness and draw the line
         ctx.lineWidth = size;
@@ -48,14 +53,27 @@
 
         ctx.closePath();
 
-    // Update the last position to reference the current position
-    lastX=x;
-    lastY=y;
+        //add point to point array
+        var newPoint = {
+          xCoordinate: x,
+          yCoordinate: y,
+          time: d.getTime()
+        };
+
+        points.push(newPoint);
+
+
+
+        // Update the last position to reference the current position
+        lastX=x;
+        lastY=y;
     } 
 
     // Clear the canvas context using the canvas width and height
     function clearCanvas(canvas,ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        addAtoms(numAtoms, centralAtom, otherAtoms);
+        console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     }
 
     // Keep track of the mouse button being pressed and draw a dot at current location
@@ -68,6 +86,8 @@
     function sketchpad_mouseUp() {
         mouseDown=0;
 
+        console.log(points);
+        points = [];
         // Reset lastX and lastY to -1 to indicate that they are now invalid, since we have lifted the "pen"
         lastX=-1;
         lastY=-1;
@@ -114,6 +134,9 @@
         // Reset lastX and lastY to -1 to indicate that they are now invalid, since we have lifted the "pen"
         lastX=-1;
         lastY=-1;
+
+        console.log(points);
+        points = [];
     }
 
     // Draw something and prevent the default scrolling when touch movement is detected
@@ -146,6 +169,76 @@
     }
 
 
+
+
+
+
+
+
+
+
+// Molecule Sketch
+    function drawAtom(atomX, atomY, letter) {
+        // Let's use black by setting RGB values to 0, and 255 alpha (completely opaque)
+        r=0; g=0; b=0; a=255;
+
+        // Select a fill style
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+
+        // Set the line "cap" style to round, so lines at different angles can join into each other
+        ctx.lineCap = "round";
+
+        // Set the line thickness and draw the line
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+        ctx.arc(atomX, atomY, 30, 0, 2*Math.PI);
+        ctx.stroke();
+
+        ctx.font = "30px Arial MS";
+        ctx.fillStyle = "black";
+        ctx.textAlign = "center";
+        ctx.fillText(letter, atomX, atomY+10);
+
+        ctx.closePath();
+
+    }
+
+
+    function addAtoms(num, central_atom, other_atoms) {
+
+        numAtoms = num;
+        centralAtom = central_atom;
+        otherAtoms = other_atoms;
+
+        var atomString = central_atom + " " + other_atoms + " ";
+
+
+        var atomCoordinates = [canvas.width/2, canvas.width/2, (canvas.width/2 + canvas.width/4), canvas.height/2, (canvas.width/2 - canvas.width/4), canvas.height/2, canvas.width/2, (canvas.height/2 - canvas.height/4), canvas.width/2, (canvas.height/2 + canvas.height/4) ];
+
+        for(i=0; i<numAtoms*2; i=i+2){
+
+            atomX = atomCoordinates[i];
+            atomY = atomCoordinates[i+1];
+
+            atomLetter = atomString.substring(i,i+1);
+
+            drawAtom(atomX, atomY, atomLetter);
+
+        }
+
+        
+    }
+
+
+
+
+
+
+
+
+
+
     // Set-up the canvas and add our event handlers after the page has loaded
     function init() {
         // Get the specific canvas element from the HTML document
@@ -168,3 +261,24 @@
             canvas.addEventListener('touchmove', sketchpad_touchMove, false);
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html>
   <head>
+
     <title>Blog</title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
     <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
   </head>
 
   <body>
-    <%= link_to "Home", root_path %>
-    <%= link_to "New Post", new_post_path %>
+    <div class="mainHeader">
+      <!--<%= link_to "Home", root_path %>
+      <%= link_to "New Post", new_post_path %>-->
+      <h1>ChemiSketch</h1>
+    </div>
     <%= yield %>
   </body>
 </html>

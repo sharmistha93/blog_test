@@ -1,0 +1,36 @@
+
+.boxed {
+	
+	font-family: 'Lato';
+	font-size: 20px;
+	color: #73c0f2;
+	border: 2px solid white;
+	background-color: white;
+	box-shadow: 3px 7px #d0e7ed;
+    border-radius: 10px;
+    text-align: center;
+    padding: 50px;
+    margin: 10px;
+    
+
+}
+
+/* unvisited link */
+a:link {
+    color: #73c0f2;
+    text-decoration: none;
+}
+
+/* visited link */
+a:visited {
+    color: #73c0f2;
+    text-decoration: none;
+}
+
+.moleculeTitle {
+	font-family: 'Lato';
+	font-size: 18px;
+	color: white;
+	text-align: center;
+
+}
