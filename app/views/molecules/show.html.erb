@@ -25,7 +25,7 @@
     </div>
     <div class="col-md-6" id="infoSection">
       <h2 class="moleculeInfoName"><%= @molecule.name %> -
-          <% @molecule.formula.each_char do |i| %>
+          <% @molecule.formula.split('').each do |i| %>
               <% if i.match(/\d/) %>
                   <sub><%= i %></sub>
               <% else %>
