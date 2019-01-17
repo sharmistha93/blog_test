@@ -1,0 +1,1631 @@
+// Variables for referencing the canvas and 2dcanvas context
+    var canvas,ctx;
+    var radius = 4;
+    var numAtoms;
+    var centralAtom;
+    var otherAtoms;
+    var atomCoordinates = [];
+    var octetCount;
+    var electronCount
+    var d = new Date();
+    var points = [];
+
+
+    var sketches = [];
+
+    //Variables for Feature Calculation
+    var bbminX;
+    var bbminY;
+    var bbmaxX;
+    var bbmaxY;
+    var startEndDist;
+
+    // Variables to keep track of the mouse position and left-button status
+    var mouseX,mouseY,mouseDown=0;
+
+
+    // Variables to keep track of the touch position
+    var touchX,touchY;
+
+    // Keep track of the old/last position when drawing a line
+    // We set it to -1 at the start to indicate that we don't have a good value for it yet
+    var lastX,lastY=-1;
+
+    //Variables for boundaries
+    var atoms = [];
+    var boxes = [];
+    var sketchOrder = [];
+    var movedBoxRegion = [];
+    var moveStatus = false;
+
+
+
+
+
+
+    //Functions to Calculate Features
+
+    //helper function for bounding box
+      function calcBoundingBox(args){
+        var minX = args[0].xCoordinate;
+        var maxX = args[0].xCoordinate;
+        var minY = args[0].yCoordinate;
+        var maxY = args[0].yCoordinate;
+
+        for(i=0; i<args.length; i++){
+          if (args[i].xCoordinate < minX) {minX = args[i].xCoordinate;}
+          if(args[i].xCoordinate > maxX) {maxX = args[i].xCoordinate;}
+          if (args[i].yCoordinate < minY) {minY = args[i].yCoordinate;}
+          if(args[i].yCoordinate > maxY) {maxY = args[i].yCoordinate;}
+        }
+
+        bbminX = minX;
+        bbminY = minY;
+        bbmaxX = maxX;
+        bbmaxY = maxY;
+
+      }
+
+    //feature 1
+      function calcCosineStartAngle(args){
+        var x0 = args[0].xCoordinate;
+        var x2 = args[3].xCoordinate;
+
+        var y0 = args[0].yCoordinate;
+        var y2 = args[3].yCoordinate;
+
+        var denom = (Math.sqrt(Math.abs(Math.pow((y2-y0),2) + Math.pow((x2-x0),2))));
+        if(denom == 0){
+          return 0;
+        }
+        else {
+          return (x2 - x0) / denom;
+        }
+
+      }
+
+    //feature 2
+      function calcSineStartAngle(args){
+
+        var x0 = args[0].xCoordinate;
+        var x2 = args[3].xCoordinate;
+
+        var y0 = args[0].yCoordinate;
+        var y2 = args[3].yCoordinate;
+
+        var denom = (Math.sqrt(Math.abs(Math.pow((y2-y0),2) + Math.pow((x2-x0),2))));
+        if(denom == 0){
+          return 0;
+        }
+        else {
+          return (y2 - y0) / denom;
+        }
+
+
+      }
+
+    //feature 3
+      function calcBoundingBoxDiagonalLength(args){
+        calcBoundingBox(args);
+        return Math.sqrt(Math.abs(Math.pow((bbmaxY - bbminY),2) + Math.pow((bbmaxX - bbminX),2)));
+      }
+
+    //feature 4
+      function calcBoundingBoxDiagonalAngle(args){
+
+        return Math.atan((bbmaxY - bbminY) / (bbmaxX - bbminX));
+
+      }
+
+    //feature 5
+      function calcStartEndDist(args){
+        x_n = args[args.length-1].xCoordinate;
+        x0 = args[0].xCoordinate;
+        y_n = args[args.length-1].yCoordinate;
+        y0 = args[0].yCoordinate;
+
+        startEndDist = Math.sqrt(Math.abs(Math.pow((x_n-x0),2) + Math.pow((y_n-y0),2)));
+        return startEndDist;
+
+      }
+
+    //feature 6
+      function calcCosineStartEndAngle(args){
+        x_n = args[args.length-1].xCoordinate;
+        x0 = args[0].xCoordinate;
+
+        if(startEndDist == 0){
+          return 0;
+        }
+        else{
+          return (x_n - x0)/startEndDist;
+        }
+
+      }
+
+    //feature 7
+      function calcSineStartEndAngle(args){
+        y_n = args[args.length-1].yCoordinate;
+        y0 = args[0].yCoordinate;
+
+        if(startEndDist == 0){
+          return 0;
+        }
+        else{
+          return (y_n - y0)/startEndDist;
+        }
+      }
+
+    //feature 8
+      function calcStrokeLen(args){
+        var strokelength = 0;
+
+        for(i=0; i<args.length-1; i++){
+          var dx = args[i+1].xCoordinate - args[i].xCoordinate;
+          var dy = args[i+1].yCoordinate - args[i].yCoordinate;
+
+          strokelength = strokelength + (Math.sqrt(dx*dx + dy*dy));
+        }
+
+        return strokelength;
+
+      }
+
+      //helper function for features 9,10,11
+      function thetaP(args, p){
+        var dxp = args[p+1].xCoordinate - args[p].xCoordinate;
+        var dyp = args[p+1].yCoordinate - args[p].yCoordinate;
+        var dxpm1 = args[p].xCoordinate - args[p-1].xCoordinate;
+        var dypm1 = args[p].yCoordinate - args[p-1].yCoordinate;
+
+        var divide = ((dxp*dypm1) - (dxpm1*dyp))/((dxp*dxpm1) + (dyp*dypm1));
+        var result = Math.atan(divide);
+        if(isNaN(result)){
+          return 0;
+        }
+        else{
+          return result;
+        }
+      }
+
+      //feature 9
+        function calcAngleTraversed9(args){
+          var thetaPSum = 0;
+          for(i=1; i<args.length-1; i++){
+            thetaPSum = thetaPSum + thetaP(args, i);
+          }
+          return thetaPSum;
+        }
+
+      //function 10
+      function calcAngleTraversed10(args){
+        var thetaPSum = 0;
+        for(i=1; i<args.length-1; i++){
+          thetaPSum = thetaPSum + Math.abs(thetaP(args, i));
+        }
+        return thetaPSum;
+      }
+
+      //function 11
+      function calcAngleTraversed11(args){
+        var thetaPSum = 0;
+        for(i=1; i<args.length-1; i++){
+          var theta_p = thetaP(args, i);
+          thetaPSum = thetaPSum + (theta_p*theta_p);
+        }
+        return thetaPSum;
+      }
+
+      //function12
+      function maxSpeedSquared(args){
+        var max = 0;
+        for(i=0; i<args.length-1; i++){
+          var dx = args[i+1].xCoordinate - args[i].xCoordinate;
+          var dy = args[i+1].yCoordinate - args[i].yCoordinate;
+          var tp = args[i+1].time - args[i].time;
+
+          var divide = ((dx*dx) + (dy*dy))/(tp*tp);
+          if(divide > max){
+            max = divide;
+          }
+        }
+
+        return max;
+      }
+
+      //function13
+      function pathDuration(args){
+        var tLast = args[args.length-1].time;
+        var tFirst = args[0].time;
+
+        return tLast - tFirst;
+      }
+
+
+
+    //Create Sketch Training
+
+      /*function interpretSketch() {
+          console.log("\n\n");
+          console.log("interpretting sketch...");
+
+          console.log(points);
+
+          var testSketch = {
+            cosineStartAngle: calcCosineStartAngle(points),
+            sineStartAngle: calcSineStartAngle(points),
+            BBDiagLen: calcBoundingBoxDiagonalLength(points),
+            BBDiagAngle: calcBoundingBoxDiagonalAngle(points),
+            startEndDist: calcStartEndDist(points),
+            startEndCosineAngle: calcCosineStartEndAngle(points),
+            startEndSineAngle: calcSineStartEndAngle(points),
+            strokeLength: calcStrokeLen(points),
+          };
+
+
+
+          sketches.push(sketch);
+          points = [];
+          clearCanvas(canvas, ctx);
+
+        }*/
+
+    function updateAtoms(){
+      console.log("updating atoms");
+      var atomsCount = [];
+      for(i=0;i<atoms.length; i++){
+        atomsCount.push(0);
+      }
+
+      for(i=0; i<boxes.length; i++){
+        var box = boxes[i];
+        for(j=0; j<box.atoms.length; j++){
+          var atomIndex = box.atoms[j];
+          //console.log("atomIndex " + atomIndex);
+          //console.log("boxCount " + box.count);
+          if(box.type == "electron"){
+            atomsCount[atomIndex] = atomsCount[atomIndex] + box.count;
+          }
+          else{
+            atomsCount[atomIndex] = atomsCount[atomIndex] + 2*box.count;
+          }
+        }
+      }
+
+      //console.log(atomsCount);
+
+      for(i=0; i<atoms.length; i++){
+        atoms[i].elecCount = atomsCount[i];
+      }
+
+      console.log(atoms);
+
+    }
+
+    function checkAnswer(){
+      console.log(atoms);
+
+      var correct = true;
+      //1. all atoms must be connected (check all bonding regions)
+      var myNode = document.getElementById("result1");
+      while (myNode.firstChild) {
+          myNode.removeChild(myNode.firstChild);
+      }
+      var correctDiv = document.createElement('div');
+      var resultDiv = document.createElement('div');
+
+
+      myNode.style.border = "2px solid #2dbcf0";
+      myNode.style.borderRadius = "20px";
+      myNode.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+      var connectedCorrect = true;
+      for(i=0; i<numAtoms-1; i++){
+        var box = boxes[i];
+        if(box.count == 0){
+          console.log("all atoms are not connected");
+          var para = document.createElement("P");
+          var t = document.createTextNode("Incorrect");
+          para.appendChild(t);
+          document.getElementById("result1").appendChild(para);
+          //correctDiv.appendChild(para);
+          para = document.createElement("P");
+          t = document.createTextNode("All atoms need to be connected");
+          para.appendChild(t);
+          document.getElementById("result1").appendChild(para);
+          //resultDiv.appendChild(para);
+
+          document.getElementById("result1").style.borderColor = "red";
+
+          connectedCorrect = false;
+          correct = false;
+          break;
+        }
+      }
+      if(connectedCorrect == true){
+        var para = document.createElement("P");
+        var t = document.createTextNode("Correct");
+        para.appendChild(t);
+        document.getElementById("result1").appendChild(para);
+        //correctDiv.appendChild(para);
+        para = document.createElement("P");
+        t = document.createTextNode("All atoms connected");
+        para.appendChild(t);
+        document.getElementById("result1").appendChild(para);
+        //resultDiv.appendChild(para);
+        document.getElementById("result1").style.borderColor = "green";
+      }
+
+
+      //2. check full octets
+      var myNode = document.getElementById("result2");
+      while (myNode.firstChild) {
+          myNode.removeChild(myNode.firstChild);
+      }
+      var fullOctetCorrect = true;
+
+      var resultDiv = document.createElement('div');
+      resultDiv.className = "row";
+      var colNum = (12/atoms.length) - 1;
+      var colStyle= "col-md-"+colNum;
+
+      for(i=0; i<atoms.length; i++){
+
+        var newDiv = document.createElement('div');
+        newDiv.className = colStyle + " resultMiniBox";
+
+        if(parseInt(atoms[i].elecCount) != parseInt(atoms[i].fullOctet)){
+
+          var para = document.createElement("P");
+          var t = document.createTextNode("Incorrect");
+          para.appendChild(t);
+          para.appendChild(document.createElement("br"));
+          newDiv.appendChild(para);
+
+          para = document.createElement("P");
+          t = document.createTextNode(atoms[i].name + " needs " + atoms[i].fullOctet + " electrons. ");
+          para.appendChild(t);
+          para.appendChild(document.createElement("br"));
+
+          t = document.createTextNode(atoms[i].name + " is using " + atoms[i].elecCount + " electrons.");
+          para.appendChild(t);
+
+
+
+          newDiv.appendChild(para);
+
+
+          console.log(atoms[i].name + " does not have the correct number of electrons");
+          console.log(atoms[i].name + " needs " + atoms[i].fullOctet + " electrons.");
+          console.log(atoms[i].name + " is using " + atoms[i].elecCount + " electrons.");
+
+          fullOctetCorrect = false;
+          correct = false;
+
+          newDiv.style.border = "2px solid red";
+          newDiv.style.borderRadius = "20px";
+          newDiv.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+
+        }
+        else{
+          var para = document.createElement("P");
+          var t = document.createTextNode("Correct");
+          para.appendChild(t);
+          para.appendChild(document.createElement("br"));
+          newDiv.appendChild(para);
+
+          para = document.createElement("P");
+          t = document.createTextNode(atoms[i].name + " needs " + atoms[i].fullOctet + " electrons. ");
+          para.appendChild(t);
+          para.appendChild(document.createElement("br"));
+
+          t = document.createTextNode(atoms[i].name + " is using " + atoms[i].elecCount + " electrons");
+          para.appendChild(t);
+
+
+
+          newDiv.appendChild(para);
+
+          newDiv.style.border = "2px solid green";
+          newDiv.style.borderRadius = "20px";
+          newDiv.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+        }
+
+        resultDiv.appendChild(newDiv);
+
+      }
+
+
+      myNode.appendChild(correctDiv);
+      myNode.appendChild(resultDiv);
+
+      //3. check total electrons
+      var myNode = document.getElementById("result3");
+      while (myNode.firstChild) {
+          myNode.removeChild(myNode.firstChild);
+      }
+
+      myNode.className = "resultBox";
+
+      var totalElecUsed = 0;
+      var totalElecAvail = 0;
+      for(i=0; i<atoms.length; i++){
+        totalElecAvail = totalElecAvail + parseInt(atoms[i].elecAvail);
+      }
+      for(i=0; i<boxes.length; i++){
+        var box = boxes[i];
+        if(box.type == "electron"){
+          totalElecUsed = totalElecUsed + box.count;
+        }
+        else{
+          totalElecUsed = totalElecUsed + 2*box.count;
+        }
+      }
+
+
+      if(totalElecUsed != totalElecAvail){
+        var para = document.createElement("P");
+        var t = document.createTextNode("Incorrect");
+        para.appendChild(t);
+        para.appendChild(document.createElement("br"));
+        para.appendChild(document.createElement("br"));
+
+        t = document.createTextNode("Total number of electrons available to use: " + totalElecAvail);
+        para.appendChild(t);
+        para.appendChild(document.createElement("br"));
+
+        t = document.createTextNode("Total number of electrons used: " + totalElecUsed);
+        para.appendChild(t);
+        para.appendChild(document.createElement("br"));
+
+        document.getElementById("result3").appendChild(para);
+        myNode.style.border = "2px solid red";
+        myNode.style.borderRadius = "20px";
+        myNode.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+        myNode.
+
+
+        console.log("Total number of electrons used is not correct");
+        console.log("Total number of electrons available to use: " + totalElecAvail);
+        console.log("Total number of electrons used: " + totalElecUsed);
+
+        correct = false;
+      }
+      else{
+        var para = document.createElement("P");
+        var t = document.createTextNode("Correct");
+        para.appendChild(t);
+        document.getElementById("result3").appendChild(para);
+
+        para = document.createElement("P");
+        t = document.createTextNode("Total number of electrons available to use: " + totalElecAvail);
+        para.appendChild(t);
+        para.appendChild(document.createElement("br"));
+
+        t = document.createTextNode("Total number of electrons used: " + totalElecUsed);
+        para.appendChild(t);
+        para.appendChild(document.createElement("br"));
+
+        document.getElementById("result3").appendChild(para);
+        myNode.style.border = "2px solid green";
+        myNode.style.borderRadius = "20px";
+        myNode.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+
+      }
+
+      if(correct == true){
+        console.log("all correct");
+
+      }
+
+    }
+
+    function isValidDraw(box_i, interpretation){
+      var box = boxes[box_i];
+      if(box_i == -1){
+        return false;
+      }
+      if(box.type == interpretation){
+
+        if(box.count < box.max){
+          return true;
+        }
+      }
+
+
+      return false;
+
+    }
+
+    function getYmax(){
+      var maxY = 0;
+      for(i = 0; i<points.length; i++){
+        if(points[i].yCoordinate > maxY){
+          maxY = points[i].yCoordinate;
+        }
+      }
+
+      return maxY;
+    }
+
+    function getXmax(){
+      var maxX = 0;
+      for(i = 0; i<points.length; i++){
+        if(points[i].xCoordinate > maxX){
+          maxX = points[i].xCoordinate;
+        }
+      }
+
+      return maxX;
+    }
+
+    function getYmin(){
+      var minY = Number.MAX_SAFE_INTEGER;
+      for(i = 0; i<points.length; i++){
+        if(points[i].yCoordinate < minY){
+          minY = points[i].yCoordinate;
+        }
+      }
+
+      return minY;
+    }
+
+    function getXmin(){
+      var minX = Number.MAX_SAFE_INTEGER;
+      for(i = 0; i<points.length; i++){
+        if(points[i].xCoordinate < minX){
+          minX = points[i].xCoordinate;
+        }
+      }
+
+      return minX;
+    }
+
+
+
+    function checkBoundaries() {
+
+      console.log("check boundaries");
+      console.log(boxes.length);
+      for (i=0; i<boxes.length; i++){
+        var minX = boxes[i].xmin;
+        var maxX = boxes[i].xmax;
+        var minY = boxes[i].ymin;
+        var maxY = boxes[i].ymax;
+
+        var count = 0;
+        for(j=0; j<points.length; j++){
+
+          if(points[j].xCoordinate <= maxX && points[j].xCoordinate >= minX){
+            if(points[j].yCoordinate <= maxY && points[j].yCoordinate >= minY){
+
+              count = count+1;
+            }
+          }
+        }
+
+
+        if(count >= (points.length/2)){
+           return i;
+        }
+
+      }
+
+      return -1;
+
+    }
+
+    function checkMoveBoundaries() {
+
+      var boundYmax = getYmax();
+      var boundYmin = getYmin();
+      var boundXmax = getXmax();
+      var boundXmin = getXmin();
+
+      if(moveStatus == false){
+        for(i=0; i<boxes.length; i++){
+          var box = boxes[i];
+          for(j=0; j<box.regions.length; j++){
+            if(box.type == "bond"){
+              if((box.regions[j].bondX > boundXmin) && (box.regions[j].bondX < boundXmax)){
+                if((box.regions[j].lastBondX > boundXmin) && (box.regions[j].lastBondX < boundXmax)){
+                  if((box.regions[j].bondY > boundYmin) && (box.regions[j].bondY < boundYmax)){
+                    if((box.regions[j].lastBondY > boundYmin) && (box.regions[j].lastBondY < boundYmax)){
+                      if((box.regions[j].fill == true)){
+                        return i;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            //electron
+            else{
+              if((box.regions[j].electronX > boundXmin) && (box.regions[j].electronX < boundXmax)){
+                if((box.regions[j].electronY > boundYmin) && (box.regions[j].electronY < boundYmax)){
+                  return i;
+                }
+              }
+
+            }
+          }
+        }
+      }
+
+      return -1;
+
+    }
+
+    function checkRegion(box_i){
+      console.log("checking region");
+      if(box_i == -1){
+        return -1;
+      }
+      var regs = boxes[box_i].regions;
+      for(i=0; i<regs.length; i++){
+        var minX = regs[i].xmin;
+        var maxX = regs[i].xmax;
+        var minY = regs[i].ymin;
+        var maxY = regs[i].ymax;
+
+        count = 0;
+        for(j=0; j<points.length; j++){
+          if(points[j].xCoordinate <= maxX && points[j].xCoordinate >= minX){
+            if(points[j].yCoordinate <= maxY && points[j].yCoordinate >= minY){
+
+              count = count+1;
+            }
+          }
+        }
+        if(count >= (points.length/2)){
+           return i;
+        }
+
+      }
+      return -1;
+    }
+
+    function checkRemRegion(box_i){
+
+      if(box_i == -1){
+        return -1;
+      }
+
+      var regs = boxes[box_i].regions;
+
+      var boundYmax = getYmax();
+      var boundYmin = getYmin();
+      var boundXmax = getXmax();
+      var boundXmin = getXmin();
+
+      for(i=0; i<regs.length; i++){
+        var minX = regs[i].xmin;
+        var maxX = regs[i].xmax;
+        var minY = regs[i].ymin;
+        var maxY = regs[i].ymax;
+
+        var count = 0;
+        for(j=0; j<points.length; j++){
+          if(points[j].xCoordinate <= maxX && points[j].xCoordinate >= minX){
+            if(points[j].yCoordinate <= maxY && points[j].yCoordinate >= minY){
+
+              count = count+1;
+            }
+          }
+        }
+        if(count >= (points.length/2) && boxes[box_i].regions[i].fill == true){
+           return i;
+        }
+      }
+
+
+
+      return -1;
+
+    }
+
+    function checkMoveRegion(boxNum){
+      var moveRegions = [];
+      if(boxNum == -1){
+        moveRegions.push(-1);
+        return moveRegions;
+      }
+      var box = boxes[boxNum];
+      var boundYmax = getYmax();
+      var boundYmin = getYmin();
+      var boundXmax = getXmax();
+      var boundXmin = getXmin();
+
+
+      for(i=0; i<box.regions.length; i++){
+        var region = box.regions[i];
+        if(box.type == "bond"){
+          if((region.bondX > boundXmin) && (region.bondX < boundXmax)){
+            if((region.lastBondX > boundXmin) && (region.lastBondX < boundXmax)){
+              if((region.bondY > boundYmin) && (region.bondY < boundYmax)){
+                if((region.lastBondY > boundYmin) && (region.lastBondY < boundYmax)){
+                  if((region.fill == true)){
+                    moveRegions.push(i);
+                  }
+                }
+              }
+            }
+          }
+        }
+        else{
+          if((region.electronX > boundXmin) && (region.electronX < boundXmax)){
+            if((region.electronY > boundYmin) && (region.electronY < boundYmax)){
+              moveRegions.push(i);
+            }
+          }
+        }
+      }
+
+      if(moveRegions.length == 0){
+        moveRegions.push(-1);
+      }
+
+      return moveRegions;
+    }
+
+
+    // Draws a line between the specified position on the supplied canvas name
+    // Parameters are: A canvas context, the x position, the y position, the size of the dot
+    function drawLine(ctx,x,y,size) {
+
+        // If lastX is not set, set lastX and lastY to the current position
+        if (lastX==-1) {
+            lastX=x;
+        lastY=y;
+        }
+
+        // Let's use black by setting RGB values to 0, and 255 alpha (completely opaque)
+        r=0; g=0; b=0; a=255;
+
+        // Select a fill style
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+
+        // Set the line "cap" style to round, so lines at different angles can join into each other
+        ctx.lineCap = "round";
+        //ctx.lineJoin = "round";
+
+
+        // Draw a filled line
+        ctx.beginPath();
+
+        // First, move to the old (previous) position
+        ctx.moveTo(lastX,lastY);
+
+        // Now draw a line to the current touch/pointer position
+        ctx.lineTo(x,y);
+
+        // Set the line thickness and draw the line
+        ctx.lineWidth = size;
+        ctx.stroke();
+
+        ctx.closePath();
+
+
+
+
+
+        // Update the last position to reference the current position
+        lastX=x;
+        lastY=y;
+    }
+
+    function drawFinal(box_i, count){
+      var box = boxes[box_i];
+
+
+      //draw final electrons
+      if(box.type == "electron"){
+        for(k=0; k<box.regions.length; k++){
+          if(box.regions[k].fill == true){
+            var electronX;
+            var electronY;
+            //horizontal box
+            if(box.direction == "horizontal"){
+              electronY = box.regions[k].ymin + (box.regions[k].ymax - box.regions[k].ymin)/2;
+              electronX = box.regions[k].xmin + (box.regions[k].xmax - box.regions[k].xmin)/2;
+            }
+            //vertical box
+            else{
+              electronY = box.regions[k].ymin + (box.regions[k].ymax - box.regions[k].ymin)/2;
+              electronX = box.regions[k].xmin + (box.regions[k].xmax - box.regions[k].xmin)/2;
+            }
+
+            if(box.regions[k].color == "blue"){
+              r=45; g=188; b=240; a=255;
+              ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+              ctx.lineCap = "round";
+              ctx.lineWidth = 1;
+              ctx.fillStyle = "#2DBCF0";
+            }
+            else{
+              r=220; g=220; b=220; a=255;
+              ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+              ctx.lineCap = "round";
+              ctx.lineWidth = 1;
+              ctx.fillStyle = "#DCDCDC";
+            }
+
+            ctx.beginPath();
+            ctx.arc(electronX, electronY, 5, 0, 2*Math.PI);
+            ctx.stroke();
+            ctx.fill();
+            ctx.closePath();
+          }
+        }
+      }
+      //draw final bond
+      else{
+        for(k=0; k<box.regions.length; k++){
+          if(box.regions[k].fill == true){
+            var bondX;
+            var bondY;
+            var lastBondX;
+            var lastBondY;
+            //horizontal box
+            if(box.direction == "horizontal"){
+              bondX = box.regions[k].xmin + 3*((box.regions[k].xmax - box.regions[k].xmin)/4);
+              lastBondX = box.regions[k].xmin + 1*((box.regions[k].xmax - box.regions[k].xmin)/4);
+
+              lastBondY = box.regions[k].ymin + 1*(box.regions[k].ymax - box.regions[k].ymin)/2;
+              bondY = box.regions[k].ymin + 1*(box.regions[k].ymax - box.regions[k].ymin)/2;
+            }
+            //vertical box
+            else{
+              bondX = box.regions[k].xmin + 1*((box.regions[k].xmax - box.regions[k].xmin)/2);
+              lastBondX = box.regions[k].xmin + 1*((box.regions[k].xmax - box.regions[k].xmin)/2);
+
+              lastBondY = box.regions[k].ymin + 3*(box.regions[k].ymax - box.regions[k].ymin)/4;
+              bondY = box.regions[k].ymin + 1*(box.regions[k].ymax - box.regions[k].ymin)/4;
+            }
+
+            if(box.regions[k].color == "blue"){
+              r=45; g=188; b=240; a=255;
+              ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+              ctx.lineCap = "round";
+              ctx.lineWidth = 1;
+              ctx.fillStyle = "#2DBCF0";
+            }
+            else{
+              r=220; g=220; b=220; a=255;
+              ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+              ctx.lineCap = "round";
+              ctx.lineWidth = 1;
+              ctx.fillStyle = "#DCDCDC";
+            }
+
+
+            ctx.beginPath();
+            ctx.moveTo(lastBondX,lastBondY);
+            ctx.lineTo(bondX,bondY);
+            ctx.lineWidth = radius;
+            ctx.stroke();
+            ctx.closePath();
+          }
+        }
+      }
+
+
+    }
+
+    function drawBoard(){
+        console.log("drawing board...");
+
+        for(i=0; i<boxes.length; i++){
+          var box = boxes[i];
+          for(j=0; j<box.count; j++){
+            drawFinal(i,j);
+          }
+        }
+    }
+
+    function undoSketch() {
+      if(sketchOrder.length > 0){
+        var lastSketch = sketchOrder[sketchOrder.length-1];
+        var boxNum = lastSketch.box;
+        var regionNum = lastSketch.region;
+        boxes[boxNum].regions[regionNum].fill = false;
+        boxes[boxNum].count = boxes[boxNum].count-1;
+        sketchOrder.pop();
+        updateAtoms();
+
+      }
+      clearCanvas(canvas,ctx, 1);
+      drawBoard();
+
+    }
+
+
+
+    // Clear the canvas context using the canvas width and height
+    function clearCanvas(canvas,ctx,status) {
+        if(status == -1){
+          for(i=0; i<boxes.length; i++){
+            var box = boxes[i];
+            box.count = 0;
+            var regs = box.regions;
+            for(j=0; j<regs.length; j++){
+              regs[j].fill = false;
+            }
+          }
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        atoms = [];
+        addAtoms(numAtoms, centralAtom, otherAtoms, octetCount, electronCount);
+        updateAtoms();
+        console.log("canvas cleared");
+
+
+    }
+
+    // Keep track of the mouse button being pressed and draw a dot at current location
+    function sketchpad_mouseDown() {
+        console.log("mouse down");
+        mouseDown=1;
+        drawLine(ctx,mouseX,mouseY,radius);
+        //add point to point array
+        var newPoint = {
+          xCoordinate: mouseX,
+          yCoordinate: mouseY,
+          time: d.getTime()
+        };
+
+        points.push(newPoint);
+    }
+
+    // Keep track of the mouse button being released
+    function sketchpad_mouseUp() {
+        mouseDown=0;
+        // Reset lastX and lastY to -1 to indicate new line will be drawn
+        lastX=-1;
+        lastY=-1;
+
+        console.log("mouse up");
+        console.log(points);
+
+        var interp = "";
+
+        //collect feature data for sketch
+        var sketch = {
+          cosineStartAngle: tr_calcCosineStartAngle(points),
+          sineStartAngle: tr_calcSineStartAngle(points),
+          BBDiagLen: tr_calcBoundingBoxDiagonalLength(points),
+          BBDiagAngle: tr_calcBoundingBoxDiagonalAngle(points),
+          startEndDist: tr_calcStartEndDist(points),
+          startEndCosineAngle: tr_calcCosineStartEndAngle(points),
+          startEndSineAngle: tr_calcSineStartEndAngle(points),
+          strokeLength: tr_calcStrokeLen(points),
+          angleTrav9: tr_calcAngleTraversed9(points),
+          angleTrav10: tr_calcAngleTraversed10(points),
+          angleTrav11: tr_calcAngleTraversed11(points),
+          maxSpeed: tr_maxSpeedSquared(points),
+          pathDuration: tr_pathDuration(points),
+        };
+
+        $.ajax({
+          method: "POST",
+          url: "/molecules",
+          dataType:"json",
+          data: sketch,
+          success: function(result){
+            console.log("success");
+            console.log(result.interp);
+            //document.getElementById("interp").innerHTML = result.interp;
+            interp = result.interp;
+
+
+            if(interp == "bond" || interp == "electron"){
+              console.log(boxes);
+              console.log(points);
+              console.log("drawing " + interp);
+              var boxNum = checkBoundaries();
+              console.log(boxNum);
+              var regionNum = checkRegion(boxNum);
+              console.log(regionNum);
+              if(isValidDraw(boxNum, interp) == true){
+                console.log("valid draw");
+                boxes[boxNum].regions[regionNum].fill = true;
+                boxes[boxNum].regions[regionNum].color = "blue";
+                boxes[boxNum].count = boxes[boxNum].count+1;
+                var sketchBox = {
+                  box: boxNum,
+                  region: regionNum,
+                }
+                sketchOrder.push(sketchBox);
+                console.log("moveStatus: " + moveStatus);
+                if(moveStatus == true){
+                  console.log("moved boxes: ");
+                  console.log(movedBoxRegion);
+                  for(i=0; i<movedBoxRegion.length; i++){
+                    var moveBoxNum = movedBoxRegion[i].box;
+                    var moveRegionNum = movedBoxRegion[i].region;
+                    boxes[moveBoxNum].regions[moveRegionNum].fill = false;
+                    boxes[moveBoxNum].count = boxes[moveBoxNum].count-1;
+                  }
+
+                  movedBoxRegion = [];
+                  moveStatus = false;
+                }
+                updateAtoms();
+              }
+            }
+            else if(interp == "remove" && moveStatus == false){
+              var boxNum = checkBoundaries();
+              var removeRegions = [];
+              var regionNum = checkRemRegion(boxNum);
+
+              if(regionNum != -1){
+                boxes[boxNum].regions[regionNum].fill = false;
+                boxes[boxNum].count = boxes[boxNum].count-1;
+                updateAtoms();
+              }
+
+
+            }
+            else if(interp == "move" && moveStatus == false){
+              //interp == "move"
+              var boxNum = checkMoveBoundaries();
+              var moveRegions = [];
+              movedBoxRegion = [];
+              var moveRegionStatus = false;
+              moveRegions = checkMoveRegion(boxNum);
+              for(i=0; i<moveRegions.length; i++){
+                var regionNum = moveRegions[i];
+                if(regionNum != -1 && moveStatus == false){
+                  moveRegionStatus = true;
+                  boxes[boxNum].regions[regionNum].color = "grey";
+                  var movedBR = {
+                    box: boxNum,
+                    region: regionNum,
+                  };
+                  movedBoxRegion.push(movedBR);
+                }
+              }
+              if(moveRegionStatus == true){
+                moveStatus = true;
+              }
+
+
+            }
+            else{
+
+            }
+
+            clearCanvas(canvas,ctx, 1);
+            drawBoard();
+            points = [];
+
+          }
+
+
+        });
+
+
+
+    }
+
+    // Keep track of the mouse position and draw a dot if mouse button is currently pressed
+    function sketchpad_mouseMove(e) {
+        console.log("mouse move");
+        // Update the mouse co-ordinates when moved
+
+          getMousePos(e);
+
+          // Draw a dot if the mouse button is currently being pressed
+          if (mouseDown==1) {
+              drawLine(ctx,mouseX,mouseY,radius);
+              //add point to point array
+              var newPoint = {
+                xCoordinate: mouseX,
+                yCoordinate: mouseY,
+                time: d.getTime()
+              };
+
+              points.push(newPoint);
+          }
+
+
+    }
+
+    // Get the current mouse position relative to the top-left of the canvas
+    function getMousePos(e) {
+        if (!e)
+            var e = event;
+
+        if (e.offsetX) {
+            mouseX = e.offsetX;
+            mouseY = e.offsetY;
+        }
+        else if (e.layerX) {
+            mouseX = e.layerX;
+            mouseY = e.layerY;
+        }
+
+        //cursor="Your Mouse Position Is : " + mouseX + " and " + mouseY;
+    		//document.getElementById("displayArea").innerHTML=cursor
+     }
+
+    // Draw something when a touch start is detected
+    function sketchpad_touchStart() {
+        // Update the touch co-ordinates
+        getTouchPos();
+
+        console.log("touch start");
+
+        //drawLine(ctx,touchX,touchY,radius);
+        var newPoint = {
+          xCoordinate: touchX,
+          yCoordinate: touchY,
+          time: d.getTime()
+        };
+
+        points.push(newPoint);
+
+        // Prevents an additional mousedown event being triggered
+        event.preventDefault();
+    }
+
+    function sketchpad_touchEnd() {
+        // Reset lastX and lastY to -1 to indicate that they are now invalid, since we have lifted the "pen"
+        lastX=-1;
+        lastY=-1;
+
+        console.log("touch end");
+        console.log(points);
+        if(checkBoundaries != -1){
+          //collect feature data for sketch
+          var sketch = {
+            cosineStartAngle: tr_calcCosineStartAngle(points),
+            sineStartAngle: tr_calcSineStartAngle(points),
+            BBDiagLen: tr_calcBoundingBoxDiagonalLength(points),
+            BBDiagAngle: tr_calcBoundingBoxDiagonalAngle(points),
+            startEndDist: tr_calcStartEndDist(points),
+            startEndCosineAngle: tr_calcCosineStartEndAngle(points),
+            startEndSineAngle: tr_calcSineStartEndAngle(points),
+            strokeLength: tr_calcStrokeLen(points),
+            angleTrav9: tr_calcAngleTraversed9(points),
+            angleTrav10: tr_calcAngleTraversed10(points),
+            angleTrav11: tr_calcAngleTraversed11(points),
+            maxSpeed: tr_maxSpeedSquared(points),
+            pathDuration: tr_pathDuration(points),
+          };
+
+          $.ajax({
+            method: "POST",
+            url: "/molecules",
+            dataType:"json",
+            data: sketch,
+            success: function(result){
+              console.log("success");
+              console.log(result.interp);
+              document.getElementById("interp").innerHTML = result.interp;
+
+            }
+          });
+
+          for(i=0; i<points.length; i++){
+            drawLine(ctx, points[i].xCoordinate, points[i].yCoordinate, radius);
+          }
+        }
+
+        points = [];
+    }
+
+    // Draw something and prevent the default scrolling when touch movement is detected
+    function sketchpad_touchMove(e) {
+        // Update the touch co-ordinates
+        getTouchPos(e);
+
+         console.log("touch move");
+
+        // During a touchmove event, unlike a mousemove event, we don't need to check if the touch is engaged, since there will always be contact with the screen by definition.
+        //drawLine(ctx,touchX,touchY,radius);
+        var newPoint = {
+          xCoordinate: touchX,
+          yCoordinate: touchY,
+          time: d.getTime()
+        };
+
+        points.push(newPoint);
+
+        // Prevent a scrolling action as a result of this touchmove triggering.
+        event.preventDefault();
+    }
+
+    // Get the touch position relative to the top-left of the canvas
+    // When we get the raw values of pageX and pageY below, they take into account the scrolling on the page
+    // but not the position relative to our target div. We'll adjust them using "target.offsetLeft" and
+    // "target.offsetTop" to get the correct values in relation to the top left of the canvas.
+    function getTouchPos(e) {
+        if (!e)
+            var e = event;
+
+        if(e.touches) {
+            if (e.touches.length == 1) { // Only deal with one finger
+                var touch = e.touches[0]; // Get the information for finger #1
+                touchX=touch.pageX-touch.target.offsetLeft;
+                touchY=touch.pageY-touch.target.offsetTop;
+            }
+        }
+
+        //cursor="Your Mouse Position Is : " + touchX + " and " + touchY;
+    		//document.getElementById("displayArea").innerHTML=cursor
+    }
+
+
+
+
+
+
+
+
+
+// Molecule Sketch
+    function drawAtom(atomX, atomY, letter) {
+
+        r=45; g=188; b=240; a=255;
+
+        // Select a fill style
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+
+        // Set the line "cap" style to round, so lines at different angles can join into each other
+        ctx.lineCap = "round";
+
+        // Set the line thickness and draw the line
+        ctx.lineWidth = 1;
+
+        ctx.fillStyle = "#2DBCF0";
+        ctx.beginPath();
+        ctx.arc(atomX, atomY, 30, 0, 2*Math.PI);
+        ctx.stroke();
+        ctx.fill();
+
+        ctx.font = "25px Montserrat";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.fillText(letter, atomX, atomY+10);
+
+        ctx.closePath();
+        console.log(letter + " atom drawn");
+
+    }
+
+    function regionOverlap(xmin, xmax, ymin, ymax, bnum){
+
+      for(k=0; k<bnum; k++){
+        var box = boxes[k];
+
+        if(xmin >= box.xmin && xmax <= box.xmax){
+          if(ymin >= box.ymin && ymax <= box.ymax){
+
+            return true;
+          }
+        }
+      }
+
+
+      return false;
+    }
+
+  //Electron & Bonding Region Sketch
+    function drawRegions(){
+      console.log("drawing regions...");
+      var num = numAtoms;
+      var coord = atomCoordinates;
+      var br = num - 1;
+
+      /*r=45; g=188; b=240; a=255;
+
+      ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+
+
+      ctx.lineCap = "round";
+
+
+      ctx.lineWidth = 1;
+
+      ctx.fillStyle = "#FFFFFF";*/
+
+      //BONDING REGIONS
+      for(i=0; i<br*2; i=i+2){
+        a1x = coord[0];
+        a1y = coord[1];
+        a2x = coord[i+2];
+        a2y = coord[i+3];
+        var atom_list = [0, (i/2 + 1)];
+        ctx.beginPath();
+        if(i < 3){
+          var regs = [];
+          var xMin = Math.min(a1x, a2x);
+          var xMax = Math.max(a1x, a2x);
+          var yMin = a1y-30;
+          var yMax = a1y+30;
+
+          for(j=0; j<3; j++){
+            var height = (yMax - yMin)/3;
+            var bondX = xMin + 3*((xMax-xMin)/4);
+            var lastBondX = xMin + 1*((xMax-xMin)/4);
+            var lastBondY = (yMin + j*height) + 1*((yMin + (j+1)*height) - (yMin + j*height))/2;
+            var bondY = (yMin + j*height) + 1*((yMin + (j+1)*height) - (yMin + j*height))/2;
+            var region = {color: "blue", xmin: xMin, xmax: xMax, ymin: yMin + j*height, ymax: yMin + (j+1)*height, bondX: bondX, lastBondX: lastBondX, bondY: bondY, lastBondY: lastBondY, fill: false};
+            //ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+            regs.push(region);
+            //ctx.stroke();
+          }
+
+          var box = {type: "bond", direction: "horizontal", count: 0, max: 3, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
+          boxes.push(box);
+          //ctx.rect(xMin, yMin, xMax-xMin, yMax-yMin);
+        }
+        else{
+          var regs = [];
+          var xMin = a1x-30;
+          var xMax = a1x+30;
+          var yMin = Math.min(a1y, a2y);
+          var yMax = Math.max(a1y, a2y);
+
+          for(j=0; j<3; j++){
+            var width = (xMax - xMin)/3;
+            var bondX = (xMin + j*width) + 1*((xMin + (j+1)*width) - (xMin + j*width))/2;
+            var lastBondX = (xMin + j*width) + 1*((xMin + (j+1)*width) - (xMin + j*width))/2;
+            var lastBondY = yMin + 3*((yMax - yMin)/4);
+            var bondY = yMin + 1*((yMax - yMin)/4);
+            var region = {color: "blue", xmin: xMin + j*width, xmax: xMin + (j+1)*width, ymin: yMin, ymax: yMax, bondX: bondX, lastBondX: lastBondX, bondY: bondY, lastBondY: lastBondY, fill: false};
+            //ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+            regs.push(region);
+            //ctx.stroke();
+          }
+
+          var box = {type: "bond", direction: "vertical", count: 0, max: 3, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
+          boxes.push(box);
+          //ctx.rect(xMin, yMin, xMax-xMin, yMax-yMin);
+        }
+        //ctx.stroke();
+        //ctx.fill();
+
+      }
+
+      /*r=240; g=188; b=245; a=255;
+      // Select a fill style
+      ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+      ctx.fillStyle = "#000000";*/
+
+      //ELECTRON REGIONS
+      for(i=0; i<num*2; i=i+2){
+
+        ax = coord[i];
+        ay = coord[i+1];
+        var atom_list = [i/2];
+
+        //top region
+        var regs = [];
+        var xMin = ax-30;
+        var xMax = ax+30;
+        var yMin = ay-67.5;
+        var yMax = ay-22.5;
+
+        if(regionOverlap(xMin, xMax, yMin, yMax, br) == false){
+          for(j=0; j<2; j++){
+            var width = (xMax - xMin)/2;
+            var electronY = yMin + ((yMax - yMin)/2);
+            var electronX = (xMin + j*width) + (((xMin + (j+1)*width) - (xMin + j*width))/2);
+            var region = {color: "blue", xmin: xMin + j*width, xmax: xMin + (j+1)*width, ymin: yMin, ymax: yMax, electronX: electronX, electronY: electronY, fill:false};
+            //ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+            regs.push(region);
+            //ctx.stroke();
+          }
+          //ctx.beginPath();
+          var box = {type: "electron", direction: "horizontal", count: 0, max: 2, xmin:xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
+          boxes.push(box);
+          //ctx.rect(xMin, yMin, xMax-xMin, yMax-yMin);
+          //ctx.stroke();
+          //ctx.fill();
+        }
+
+
+        //bottom region
+        regs = [];
+        xMin = ax-30;
+        xMax = ax+30;
+        yMin = ay+22.5;
+        yMax = ay+67.5;
+        if(regionOverlap(xMin, xMax, yMin, yMax, br) == false){
+          for(j=0; j<2; j++){
+            var width = (xMax - xMin)/2;
+            var electronY = yMin + ((yMax - yMin)/2);
+            var electronX = (xMin + j*width) + (((xMin + (j+1)*width) - (xMin + j*width))/2);
+            var region = {color: "blue", xmin: xMin + j*width, xmax: xMin + (j+1)*width, ymin: yMin, ymax: yMax, electronX: electronX, electronY: electronY, fill:false};
+            //ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+            regs.push(region);
+            //ctx.stroke();
+          }
+          //ctx.beginPath();
+          var box = {type: "electron", direction: "horizontal", count: 0, max: 2, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
+          boxes.push(box);
+          //ctx.rect(xMin, yMin, xMax-xMin, yMax-yMin);
+          //ctx.stroke();
+          //ctx.fill();
+        }
+
+        //left region
+        regs = [];
+        xMin = ax-67.5;
+        xMax = ax-22.5;
+        yMin = ay-30;
+        yMax = ay+30;
+
+        if(regionOverlap(xMin, xMax, yMin, yMax, br) == false){
+          for(j=0; j<2; j++){
+            var height = (yMax - yMin)/2;
+            var electronY = (yMin + j*height) + (((yMin + (j+1)*height) - (yMin + j*height))/2);
+            var electronX = xMin + ((xMax - xMin)/2);
+            var region = {color: "blue", xmin: xMin, xmax: xMax, ymin: yMin + j*height, ymax: yMin + (j+1)*height, electronX: electronX, electronY: electronY, fill:false};
+            //ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+            regs.push(region);
+            //ctx.stroke();
+          }
+          //ctx.beginPath();
+          var box = {type: "electron", direction: "vertical", count: 0, max: 2, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
+          boxes.push(box);
+          //ctx.rect(xMin, yMin, xMax-xMin, yMax-yMin);
+          //ctx.stroke();
+          //ctx.fill();
+        }
+
+        //right region
+        regs = [];
+        xMin = ax+22.5;
+        xMax = ax+67.5;
+        yMin = ay-30;
+        yMax = ay+30;
+
+        if(regionOverlap(xMin, xMax, yMin, yMax, br) == false){
+          for(j=0; j<2; j++){
+            var height = (yMax - yMin)/2;
+            var electronY = (yMin + j*height) + (((yMin + (j+1)*height) - (yMin + j*height))/2);
+            var electronX = xMin + ((xMax - xMin)/2);
+            var region = {color: "blue", xmin: xMin, xmax: xMax, ymin: yMin + j*height, ymax: yMin + (j+1)*height, electronX: electronX, electronY: electronY, fill:false};
+            //ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+            regs.push(region);
+            //ctx.stroke();
+          }
+          //ctx.beginPath();
+          var box = {type: "electron", direction: "vertical", count: 0, max: 2, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
+          boxes.push(box);
+          //ctx.rect(xMin, yMin, xMax-xMin, yMax-yMin);
+          //ctx.stroke();
+          //ctx.fill();
+        }
+
+
+      }
+
+    }
+
+    function addMolculeInfo(){
+      var availStr = "";
+      var needStr = "";
+      var totalAvail = 0;
+      for(i=0; i<atoms.length; i++){
+        availStr = availStr + atoms[i].name + ": " + atoms[i].elecAvail + " | ";
+        totalAvail = totalAvail + parseInt(atoms[i].elecAvail);
+        needStr = needStr + atoms[i].name + ": " + atoms[i].fullOctet + " | ";
+      }
+      availStr = availStr + "Total: " + totalAvail;
+
+      var myNode = document.getElementById("moleculeInfoAvail");
+      while (myNode.firstChild) {
+          myNode.removeChild(myNode.firstChild);
+      }
+      var para = document.createElement("P");
+      var t = document.createTextNode("Electrons Available");
+      para.appendChild(t);
+      para.appendChild(document.createElement("br"));
+      myNode.appendChild(para);
+
+      t = document.createTextNode(availStr);
+      para.appendChild(t);
+      para.appendChild(document.createElement("br"));
+      myNode.appendChild(para);
+
+      myNode = document.getElementById("moleculeInfoNeed");
+      while (myNode.firstChild) {
+          myNode.removeChild(myNode.firstChild);
+      }
+      para = document.createElement("P");
+      t = document.createTextNode("Electrons Needed");
+      para.appendChild(t);
+      para.appendChild(document.createElement("br"));
+      myNode.appendChild(para);
+
+      t = document.createTextNode(needStr);
+      para.appendChild(t);
+      para.appendChild(document.createElement("br"));
+      myNode.appendChild(para);
+
+
+    }
+
+    function addAtoms(num, central_atom, other_atoms, octet_count, electron_count) {
+        console.log("adding atoms..");
+        numAtoms = num;
+        centralAtom = central_atom;
+        otherAtoms = other_atoms;
+        octetCount = octet_count;
+        electronCount = electron_count;
+
+        var atomString = central_atom + " " + other_atoms + " ";
+        var atomLetters = [];
+
+
+        atomCoordinates = [canvas.width/2, canvas.height/2, (canvas.width/2 + canvas.width/4), canvas.height/2, (canvas.width/2 - canvas.width/4), canvas.height/2, canvas.width/2, (canvas.height/2 - canvas.height/4), canvas.width/2, (canvas.height/2 + canvas.height/4) ];
+
+
+
+        for(i=0; i<numAtoms*2; i=i+2){
+
+            atomX = atomCoordinates[i];
+            atomY = atomCoordinates[i+1];
+
+            atomLetter = atomString.substring(i,i+1);
+            atomLetters.push(atomLetter);
+            drawAtom(atomX, atomY, atomLetter);
+
+        }
+
+
+
+
+        for(i=0; i<numAtoms; i++){
+
+          var atom = {
+            name: atomLetters[i],
+            fullOctet: octet_count.substring(i,i+1),
+            elecAvail: electron_count.substring(i,i+1),
+            elecCount: 0,
+          };
+
+          atoms.push(atom);
+
+        }
+
+        addMolculeInfo();
+
+    }
+
+
+
+    // Set-up the canvas and add our event handlers after the page has loaded
+    function init() {
+        console.log("init");
+        // Get the specific canvas element from the HTML document
+        canvas = document.getElementById('sketchpad');
+        points = [];
+        boxes = [];
+        atoms = [];
+        mouseX,mouseY,mouseDown=0;
+        lastX,lastY=-1;
+
+
+
+
+        // If the browser supports the canvas tag, get the 2d drawing context for this canvas
+        if (canvas.getContext)
+            ctx = canvas.getContext('2d');
+
+        // Check that we have a valid context to draw on/with before adding event handlers
+        if (ctx) {
+            // React to mouse events on the canvas, and mouseup on the entire document
+            canvas.addEventListener('mousedown', sketchpad_mouseDown, false);
+            canvas.addEventListener('mousemove', sketchpad_mouseMove, false);
+            window.addEventListener('mouseup', sketchpad_mouseUp, false);
+
+            // React to touch events on the canvas
+            canvas.addEventListener('touchstart', sketchpad_touchStart, false);
+            canvas.addEventListener('touchend', sketchpad_touchEnd, false);
+            canvas.addEventListener('touchmove', sketchpad_touchMove, false);
+        }
+    }

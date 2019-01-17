@@ -1,36 +1,50 @@
 
 <% counter = 0 %>
+<div class="mainHeader headerwhite">
+      <!--<%= link_to "Home", root_path %>
+      <%= link_to "New Post", new_post_path %>-->
+      <h2>chemisketch</h2>
+</div>
 <div class ="moleculeSelectorSection">
 	<div class="row">
 
 		<% @molecules.each do |molecule| %>
 			<% counter = counter + 1 %>
-			
+
 			<% if counter % 3 == 1 %>
 				<%= link_to molecule, class: 'col-md-3 boxed firstBox', :action => 'go' do %>
-					<p><%=molecule.name%></p>
+					<p class="molecule_formula">
+						<% molecule.formula.each_char do |i| %>
+							<% if i.match(/\d/) %>
+								<sub><%= i %></sub>
+							<% else %>
+								<%= i %>
+							<% end %>
+						<% end %>
+					</p>
+					<p class="molecule_name"><%=molecule.name%></p>
 				<% end %>
 			<% else %>
 				<%= link_to molecule, class: 'col-md-3 boxed', :action => 'go' do %>
-					<p><%=molecule.name%></p>
+					<p class="molecule_formula">
+						<% molecule.formula.each_char do |i| %>
+							<% if i.match(/\d/) %>
+								<sub><%= i %></sub>
+							<% else %>
+								<%= i %>
+							<% end %>
+						<% end %>
+					</p>
+					<p class="molecule_name"><%=molecule.name%></p>
 				<% end %>
 			<% end %>
-			
+
 			<% if counter % 3 == 0 %>
 				</div>
 				<div class="row">
 			<% end %>
-			
+
 
 		<% end %>
 	</div>
 </div>
-
-
-
-
-
-
- 
-
-

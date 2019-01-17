@@ -1,0 +1,1529 @@
+// Variables for referencing the canvas and 2dcanvas context
+    var canvas,ctx;
+    var canvasWidth, canvasHeight;
+    var radius = 4;
+    var numAtoms;
+    var centralAtom;
+    var otherAtoms;
+    var atomCoordinates = [];
+
+    var points = [];
+    var boxes = [];
+    var movedBox;
+
+    var sketches = [];
+    var sLevels = ["--", "bond", "electron", "remove", "move", "example"];
+    var sketchlevel;
+    var boardLevel;
+    var moveStatus = false;
+    var csvSketches;
+
+    //Variables for Feature Calculation
+    var bbminX;
+    var bbminY;
+    var bbmaxX;
+    var bbmaxY;
+    var startEndDist;
+
+    // Variables to keep track of the mouse position and left-button status
+    var mouseX,mouseY,mouseDown=0;
+
+    // Variables to keep track of the touch position
+    var touchX,touchY;
+
+    // Keep track of the old/last position when drawing a line
+    // We set it to -1 at the start to indicate that we don't have a good value for it yet
+    var lastX,lastY=-1;
+
+//Functions to Calculate Features
+
+//helper function for bounding box
+  function tr_calcBoundingBox(args){
+    var minX = args[0].xCoordinate;
+    var maxX = args[0].xCoordinate;
+    var minY = args[0].yCoordinate;
+    var maxY = args[0].yCoordinate;
+
+    for(i=0; i<args.length; i++){
+      if (args[i].xCoordinate < minX) {minX = args[i].xCoordinate;}
+      if(args[i].xCoordinate > maxX) {maxX = args[i].xCoordinate;}
+      if (args[i].yCoordinate < minY) {minY = args[i].yCoordinate;}
+      if(args[i].yCoordinate > maxY) {maxY = args[i].yCoordinate;}
+    }
+
+    bbminX = minX;
+    bbminY = minY;
+    bbmaxX = maxX;
+    bbmaxY = maxY;
+
+  }
+
+//feature 1
+  function tr_calcCosineStartAngle(args){
+    var x0 = args[0].xCoordinate;
+    var x2 = args[3].xCoordinate;
+
+    var y0 = args[0].yCoordinate;
+    var y2 = args[3].yCoordinate;
+
+    var denom = (Math.sqrt(Math.abs(Math.pow((y2-y0),2) + Math.pow((x2-x0),2))));
+    if(denom == 0){
+      return 0;
+    }
+    else {
+      return (x2 - x0) / denom;
+    }
+
+  }
+
+//feature 2
+  function tr_calcSineStartAngle(args){
+
+    var x0 = args[0].xCoordinate;
+    var x2 = args[3].xCoordinate;
+
+    var y0 = args[0].yCoordinate;
+    var y2 = args[3].yCoordinate;
+
+    var denom = (Math.sqrt(Math.abs(Math.pow((y2-y0),2) + Math.pow((x2-x0),2))));
+    if(denom == 0){
+      return 0;
+    }
+    else {
+      return (y2 - y0) / denom;
+    }
+
+
+  }
+
+//feature 3
+  function tr_calcBoundingBoxDiagonalLength(args){
+    tr_calcBoundingBox(args);
+    return Math.sqrt(Math.abs(Math.pow((bbmaxY - bbminY),2) + Math.pow((bbmaxX - bbminX),2)));
+  }
+
+//feature 4
+  function tr_calcBoundingBoxDiagonalAngle(args){
+
+    return Math.atan((bbmaxY - bbminY) / (bbmaxX - bbminX));
+
+  }
+
+//feature 5
+  function tr_calcStartEndDist(args){
+    x_n = args[args.length-1].xCoordinate;
+    x0 = args[0].xCoordinate;
+    y_n = args[args.length-1].yCoordinate;
+    y0 = args[0].yCoordinate;
+
+    startEndDist = Math.sqrt(Math.abs(Math.pow((x_n-x0),2) + Math.pow((y_n-y0),2)));
+    return startEndDist;
+
+  }
+
+//feature 6
+  function tr_calcCosineStartEndAngle(args){
+    x_n = args[args.length-1].xCoordinate;
+    x0 = args[0].xCoordinate;
+
+    if(startEndDist == 0){
+      return 0;
+    }
+    else{
+      return (x_n - x0)/startEndDist;
+    }
+
+  }
+
+//feature 7
+  function tr_calcSineStartEndAngle(args){
+    y_n = args[args.length-1].yCoordinate;
+    y0 = args[0].yCoordinate;
+
+    if(startEndDist == 0){
+      return 0;
+    }
+    else{
+      return (y_n - y0)/startEndDist;
+    }
+  }
+
+//feature 8
+  function tr_calcStrokeLen(args){
+    var strokelength = 0;
+
+    for(i=0; i<args.length-1; i++){
+      var dx = args[i+1].xCoordinate - args[i].xCoordinate;
+      var dy = args[i+1].yCoordinate - args[i].yCoordinate;
+
+      strokelength = strokelength + (Math.sqrt(dx*dx + dy*dy));
+    }
+
+    return strokelength;
+
+  }
+
+  //helper function for features 9,10,11
+  function thetaP(args, p){
+    var dxp = args[p+1].xCoordinate - args[p].xCoordinate;
+    var dyp = args[p+1].yCoordinate - args[p].yCoordinate;
+    var dxpm1 = args[p].xCoordinate - args[p-1].xCoordinate;
+    var dypm1 = args[p].yCoordinate - args[p-1].yCoordinate;
+
+    var divide = ((dxp*dypm1) - (dxpm1*dyp))/((dxp*dxpm1) + (dyp*dypm1));
+    var result = Math.atan(divide);
+    if(isNaN(result) || isFinite(result) == false){
+      return 0;
+    }
+    else{
+      return result;
+    }
+  }
+
+  //feature 9
+    function tr_calcAngleTraversed9(args){
+      var thetaPSum = 0;
+      for(i=1; i<args.length-1; i++){
+        thetaPSum = thetaPSum + thetaP(args, i);
+      }
+      return thetaPSum;
+    }
+
+  //function 10
+  function tr_calcAngleTraversed10(args){
+    var thetaPSum = 0;
+    for(i=1; i<args.length-1; i++){
+      thetaPSum = thetaPSum + Math.abs(thetaP(args, i));
+    }
+    return thetaPSum;
+  }
+
+  //function 11
+  function tr_calcAngleTraversed11(args){
+    var thetaPSum = 0;
+    for(i=1; i<args.length-1; i++){
+      var theta_p = thetaP(args, i);
+      thetaPSum = thetaPSum + (theta_p*theta_p);
+    }
+    return thetaPSum;
+  }
+
+  //function12
+  function tr_maxSpeedSquared(args){
+    var max = 0;
+    for(i=0; i<args.length-1; i++){
+      var dx = args[i+1].xCoordinate - args[i].xCoordinate;
+      var dy = args[i+1].yCoordinate - args[i].yCoordinate;
+      var tp = args[i+1].time - args[i].time;
+
+      var divide = ((dx*dx) + (dy*dy))/(tp*tp);
+      if(isNaN(divide) || isFinite(divide) == false){
+        //do nothing
+      }
+      else if(divide > max){
+        max = divide;
+      }
+      else{
+
+      }
+    }
+
+    return max;
+  }
+
+  //function13
+  function tr_pathDuration(args){
+
+
+    var tLast = args[args.length-1].time;
+    var tFirst = args[0].time;
+    
+
+    return tLast - tFirst;
+  }
+
+
+
+
+//Create Sketch Training
+
+    function tr_createSketchTraining() {
+
+      console.log("Training: creating sketch training");
+
+      console.log("Training: " + points);
+
+      var sketchinterp = document.getElementById("sketchinterp").value;
+
+      var sketch = {
+        cosineStartAngle: tr_calcCosineStartAngle(points),
+        sineStartAngle: tr_calcSineStartAngle(points),
+        BBDiagLen: tr_calcBoundingBoxDiagonalLength(points),
+        BBDiagAngle: tr_calcBoundingBoxDiagonalAngle(points),
+        startEndDist: tr_calcStartEndDist(points),
+        startEndCosineAngle: tr_calcCosineStartEndAngle(points),
+        startEndSineAngle: tr_calcSineStartEndAngle(points),
+        strokeLength: tr_calcStrokeLen(points),
+        interpretation: sketchinterp
+      };
+
+      sketches.push(sketch);
+      points = [];
+      tr_clearCanvas(canvas, ctx);
+
+    }
+
+
+    function tr_convertTrainingCSV(args){
+        var result, ctr, keys, columnDelimiter, lineDelimiter, data;
+
+        data = args.data || null;
+        if (data == null || !data.length) {
+            return null;
+        }
+
+        columnDelimiter = args.columnDelimiter || ',';
+        lineDelimiter = args.lineDelimiter || '\n';
+
+        keys = Object.keys(data[0]);
+
+        result = '';
+        result += keys.join(columnDelimiter);
+        result += lineDelimiter;
+
+        data.forEach(function(item) {
+            ctr = 0;
+            keys.forEach(function(key) {
+                if (ctr > 0) result += columnDelimiter;
+
+                result += item[key];
+                ctr++;
+            });
+            result += lineDelimiter;
+        });
+
+        return result;
+
+    }
+
+    function tr_downloadCSV(args){
+
+        var data, filename, link;
+        var csv = tr_convertTrainingCSV({
+            data: sketches
+        });
+        if (csv == null) return;
+
+        filename = args.filename || 'export.csv';
+
+        if (!csv.match(/^data:text\/csv/i)) {
+            csv = 'data:text/csv;charset=utf-8,' + csv;
+        }
+        data = encodeURI(csv);
+
+        link = document.createElement('a');
+        link.setAttribute('href', data);
+        link.setAttribute('download', filename);
+        link.click();
+
+    }
+
+    function tr_checkBoundary(x,y){
+      if(x > canvasWidth){
+        return false;
+      }
+      else if (x < 0){
+        return false;
+      }
+      else if (y > canvasHeight){
+        return false;
+      }
+      else if (y < 0){
+        return false;
+      }
+      else{
+        return true;
+      }
+
+    }
+
+    function tr_getYmax(){
+      var maxY = 0;
+      for(i = 0; i<points.length; i++){
+        if(points[i].yCoordinate > maxY){
+          maxY = points[i].yCoordinate;
+        }
+      }
+
+      return maxY;
+    }
+
+    function tr_getXmax(){
+      var maxX = 0;
+      for(i = 0; i<points.length; i++){
+        if(points[i].xCoordinate > maxX){
+          maxX = points[i].xCoordinate;
+        }
+      }
+
+      return maxX;
+    }
+
+    function tr_getYmin(){
+      var minY = Number.MAX_SAFE_INTEGER;
+      for(i = 0; i<points.length; i++){
+        if(points[i].yCoordinate < minY){
+          minY = points[i].yCoordinate;
+        }
+      }
+
+      return minY;
+    }
+
+    function tr_getXmin(){
+      var minX = Number.MAX_SAFE_INTEGER;
+      for(i = 0; i<points.length; i++){
+        if(points[i].xCoordinate < minX){
+          minX = points[i].xCoordinate;
+        }
+      }
+
+      return minX;
+    }
+
+    function tr_getBox(sketchType) {
+
+      console.log(points);
+
+      console.log("getting box");
+      console.log(boxes.length);
+
+      var boundYmax = tr_getYmax();
+      var boundYmin = tr_getYmin();
+      var boundXmax = tr_getXmax();
+      var boundXmin = tr_getXmin();
+
+      if(sketchType == "move" && moveStatus == false){
+        for(i=0; i<boxes.length; i++){
+
+          var box = boxes[i];
+
+
+          //bond
+          if(box.type == "bond"){
+            if((box.bondX > boundXmin) && (box.bondX < boundXmax)){
+              console.log("first true");
+              if((box.lastBondX > boundXmin) && (box.lastBondX < boundXmax)){
+                console.log("second true");
+                if((box.bondY > boundYmin) && (box.bondY < boundYmax)){
+                  console.log("third true");
+                  if((box.lastBondY > boundYmin) && (box.lastBondY < boundYmax)){
+                    console.log("fourth true");
+                    if((box.full == true)){
+                      console.log("returning " + i);
+                      movedBox = i;
+                      return i;
+                    }
+                  }
+                }
+              }
+            }
+
+            console.log("not true");
+          }
+          //electron
+          else{
+            if((box.electronX > boundXmin) && (box.electronX < boundXmax)){
+              if((box.electronY > boundYmin) && (box.electronY < boundYmax)){
+                movedBox = i;
+                return i;
+              }
+            }
+          }
+
+
+        }
+
+        return -1;
+
+
+      }
+      else{
+        for (i=0; i<boxes.length; i++){
+          var minX = boxes[i].xmin;
+          var maxX = boxes[i].xmax;
+          var minY = boxes[i].ymin;
+          var maxY = boxes[i].ymax;
+          console.log(minX + " " + maxX + " " + minY + " " + maxY);
+
+
+          count = 0;
+          for(j=0; j<points.length; j++){
+            if(points[j].xCoordinate <= maxX && points[j].xCoordinate >= minX){
+              if(points[j].yCoordinate <= maxY && points[j].yCoordinate >= minY){
+
+                count = count+1;
+              }
+            }
+          }
+
+
+          if(count >= (points.length/2)){
+             return i;
+          }
+
+        }
+
+        return -1;
+
+      }
+
+    }
+
+    function tr_drawCenterBonds(){
+      r=45; g=188; b=240; a=255;
+      ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+      ctx.lineCap = "round";
+      ctx.lineWidth = 1;
+      ctx.fillStyle = "#2DBCF0";
+      var coord = atomCoordinates;
+      var num = numAtoms;
+
+      var centerX = coord[0];
+      var centerY = coord[1];
+
+      for(i=2; i<num*2; i=i+2){
+        var ax = coord[i];
+        var ay = coord[i+1];
+
+        if(i == 2){
+          var bondX = ax + 3*((centerX - ax)/4);
+          var lastBondX = ax + 1*((centerX - ax)/4);
+          var lastBondY = ay;
+          var bondY = ay;
+
+          ctx.beginPath();
+          ctx.moveTo(lastBondX, lastBondY);
+          ctx.lineTo(bondX, bondY);
+
+          ctx.lineWidth = radius;
+          ctx.stroke();
+          ctx.closePath();
+        }
+
+        if(i == 4){
+          var bondX = ax + 3*((centerX - ax)/4);
+          var lastBondX = ax + 1*((centerX - ax)/4);
+          var lastBondY = ay;
+          var bondY = ay;
+
+          ctx.beginPath();
+          ctx.moveTo(lastBondX, lastBondY);
+          ctx.lineTo(bondX, bondY);
+
+          ctx.lineWidth = radius;
+          ctx.stroke();
+          ctx.closePath();
+        }
+
+        if(i == 6){
+          var bondX = ax;
+          var lastBondX = ax;
+          var bondY = ay + 3*((centerY-ay)/4);
+          var lastBondY = ay + 1*((centerY-ay)/4);
+
+          ctx.beginPath();
+          ctx.moveTo(lastBondX, lastBondY);
+          ctx.lineTo(bondX, bondY);
+
+          ctx.lineWidth = radius;
+          ctx.stroke();
+          ctx.closePath();
+        }
+
+        if(i == 8){
+          var bondX = ax;
+          var lastBondX = ax;
+          var bondY = ay + 3*((centerY-ay)/4);
+          var lastBondY = ay + 1*((centerY-ay)/4);
+
+          ctx.beginPath();
+          ctx.moveTo(lastBondX, lastBondY);
+          ctx.lineTo(bondX, bondY);
+
+          ctx.lineWidth = radius;
+          ctx.stroke();
+          ctx.closePath();
+        }
+
+      }
+
+    }
+
+    function tr_drawFinal(box_i){
+
+        var box = boxes[box_i];
+        if(box.full == true){
+          if(box.color == "grey"){
+            r=220; g=220; b=220; a=255;
+            ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+            ctx.lineCap = "round";
+            ctx.lineWidth = 1;
+            ctx.fillStyle = "#DCDCDC";
+          }
+          else if(box.color == "blue"){
+            console.log("blue");
+            r = 45; g=188; b=240; a=255;
+            ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+            ctx.lineCap = "round";
+            ctx.lineWidth = 1;
+            ctx.fillStyle = "#2DBCF0";
+          }
+          else{
+            console.log("black");
+            r=0; g=0; b=0; a=255;
+            ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+            ctx.lineCap = "round";
+            ctx.lineWidth = 1;
+            ctx.fillStyle = "#000000";
+          }
+
+          if(box.type == "bond"){
+            if(box.direction == "horizontal"){
+              var lastBondX = box.xmin;
+              var bondX = box.xmax;
+              var lastBondY = box.ymin+5;
+              var bondY = box.ymax-5;
+              ctx.beginPath();
+              ctx.moveTo(lastBondX,lastBondY);
+              ctx.lineTo(bondX,bondY);
+              ctx.lineWidth = radius;
+              ctx.stroke();
+              ctx.closePath();
+            }
+            else{
+              var lastBondX = box.xmin+5;
+              var bondX = box.xmax-5;
+              var lastBondY = box.ymin;
+              var bondY = box.ymax;
+              ctx.beginPath();
+              ctx.moveTo(lastBondX,lastBondY);
+              ctx.lineTo(bondX,bondY);
+              ctx.lineWidth = radius;
+              ctx.stroke();
+              ctx.closePath();
+            }
+          }
+          else{
+            var electronX;
+            var electonY;
+
+            if(box.direction == "horizontal"){
+              electronY = box.ymin + (box.ymax - box.ymin)/2;
+              electronX = box.xmin + (box.xmax - box.xmin)/2;
+            }
+            //vertical box
+            else{
+              electronY = box.ymin + (box.ymax - box.ymin)/2;
+              electronX = box.xmin + (box.xmax - box.xmin)/2;
+            }
+
+            ctx.beginPath();
+            ctx.arc(electronX, electronY, 5, 0, 2*Math.PI);
+            ctx.stroke();
+            ctx.fill();
+            ctx.closePath();
+          }
+        }
+
+
+
+    }
+
+    function tr_drawBoard(){
+        console.log("drawing board...");
+
+        for(i=0; i<boxes.length; i++){
+          tr_drawFinal(i);
+        }
+
+        if(boardLevel == 2){
+          tr_drawCenterBonds();
+        }
+    }
+
+    function tr_checkBoard(color){
+      console.log("checking board...");
+      for(i=0; i<boxes.length; i++){
+        var box = boxes[i];
+        if(box.color == color){
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    // Draws a line between the specified position on the supplied canvas name
+    // Parameters are: A canvas context, the x position, the y position, the size of the dot
+    function tr_drawLine(ctx,x,y,size) {
+
+        // If lastX is not set, set lastX and lastY to the current position
+        if (lastX==-1) {
+            lastX=x;
+        lastY=y;
+        }
+
+        // Let's use black by setting RGB values to 0, and 255 alpha (completely opaque)
+        r=0; g=0; b=0; a=255;
+
+        // Select a fill style
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+
+        // Set the line "cap" style to round, so lines at different angles can join into each other
+        ctx.lineCap = "round";
+        //ctx.lineJoin = "round";
+
+
+        // Draw a filled line
+        ctx.beginPath();
+
+        // First, move to the old (previous) position
+        ctx.moveTo(lastX,lastY);
+
+        // Now draw a line to the current touch/pointer position
+        ctx.lineTo(x,y);
+
+        // Set the line thickness and draw the line
+        ctx.lineWidth = size;
+        ctx.stroke();
+
+        ctx.closePath();
+
+        var d = new Date();
+
+        //add point to point array
+        var newPoint = {
+          xCoordinate: x,
+          yCoordinate: y,
+          time: d.getTime()
+        };
+
+        points.push(newPoint);
+
+
+
+        // Update the last position to reference the current position
+        lastX=x;
+        lastY=y;
+    }
+
+    // Clear the canvas context using the canvas width and height
+    function tr_clearCanvas(canvas,ctx) {
+      console.log("clearing canvas");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        tr_addAtoms(numAtoms, centralAtom, otherAtoms);
+    }
+
+    // Keep track of the mouse button being pressed and draw a dot at current location
+    function tr_sketchpad_mouseDown() {
+        if (tr_checkBoundary(mouseX, mouseY)){
+          mouseDown=1;
+          tr_drawLine(ctx,mouseX,mouseY,radius);
+        }
+    }
+
+    // Keep track of the mouse button being released
+    function tr_sketchpad_mouseUp() {
+          if (mouseDown = 1){
+            mouseDown=0;
+
+            // Reset lastX and lastY to -1 to indicate that they are now invalid, since we have lifted the "pen"
+            lastX=-1;
+            lastY=-1;
+          }
+          var boxI = tr_getBox(sketchlevel);
+          console.log("move status: " + moveStatus);
+          if(boxI != -1 && moveStatus == false){
+            console.log("valid draw");
+            console.log(boxI);
+            var box = boxes[boxI];
+            if(sketchlevel == "bond" || sketchlevel == "electron"){
+              box.color = "blue";
+            }
+            else{
+              box.color = "grey";
+            }
+
+            var sketch = {
+              cosineStartAngle: tr_calcCosineStartAngle(points),
+              sineStartAngle: tr_calcSineStartAngle(points),
+              BBDiagLen: tr_calcBoundingBoxDiagonalLength(points),
+              BBDiagAngle: tr_calcBoundingBoxDiagonalAngle(points),
+              startEndDist: tr_calcStartEndDist(points),
+              startEndCosineAngle: tr_calcCosineStartEndAngle(points),
+              startEndSineAngle: tr_calcSineStartEndAngle(points),
+              strokeLength: tr_calcStrokeLen(points),
+              angleTrav9: tr_calcAngleTraversed9(points),
+              angleTrav10: tr_calcAngleTraversed10(points),
+              angleTrav11: tr_calcAngleTraversed11(points),
+              maxSpeed: tr_maxSpeedSquared(points),
+              pathDuration: tr_pathDuration(points),
+              interpretation: sketchlevel,
+            };
+
+            $.ajax({
+              method: "POST",
+              url: "/sketchtrainings",
+              dataType:"json",
+              data: sketch,
+              success: function(result){
+                console.log("sketch added");
+
+              }
+            });
+
+
+
+          }
+
+          if(moveStatus == true && boxI != -1){
+            if(boxes[boxI] != false){
+              console.log("moving box")
+              boxes[movedBox].full = false;
+              boxes[boxI].full = true;
+              boxes[boxI].color = "blue";
+              moveStatus = false;
+            }
+          }
+          else if(sketchlevel == "move" && boxI != -1 && moveStatus == false){
+            moveStatus = true;
+          }
+          else{
+
+          }
+          tr_clearCanvas(canvas, ctx);
+
+          var boardStatus;
+          if(sketchlevel == "bond" || sketchlevel == "electron"){
+            boardStatus = tr_checkBoard("grey");
+          }
+          else if (sketchlevel == "remove"){
+            boardStatus = tr_checkBoard("blue");
+          }
+          else{
+            boardStatus = tr_checkBoard("black");
+          }
+
+          if(boardStatus == true){
+            boardLevel = boardLevel + 1;
+            sketchlevel = sLevels[boardLevel];
+            boxes = [];
+            tr_setInstruction();
+          }
+
+          tr_drawBoard();
+          points = [];
+
+
+    }
+
+    // Keep track of the mouse position and draw a dot if mouse button is currently pressed
+    function tr_sketchpad_mouseMove(e) {
+        // Update the mouse co-ordinates when moved
+        tr_getMousePos(e);
+
+        // Draw a dot if the mouse button is currently being pressed
+        if (mouseDown==1) {
+            tr_drawLine(ctx,mouseX,mouseY,radius);
+        }
+    }
+
+    // Get the current mouse position relative to the top-left of the canvas
+    function tr_getMousePos(e) {
+        if (!e)
+            var e = event;
+
+        if (e.offsetX) {
+            mouseX = e.offsetX;
+            mouseY = e.offsetY;
+        }
+        else if (e.layerX) {
+            mouseX = e.layerX;
+            mouseY = e.layerY;
+        }
+     }
+
+    // Draw something when a touch start is detected
+    function tr_sketchpad_touchStart() {
+        // Update the touch co-ordinates
+        tr_getTouchPos();
+
+        if(tr_checkBoundary(touchX, touchY)){
+          tr_drawLine(ctx,touchX,touchY,radius);
+
+          // Prevents an additional mousedown event being triggered
+          event.preventDefault();
+        }
+
+    }
+
+    function tr_sketchpad_touchEnd() {
+      if(tr_checkBoundary(touchX, touchY)){
+        // Reset lastX and lastY to -1 to indicate that they are now invalid, since we have lifted the "pen"
+        lastX=-1;
+        lastY=-1;
+
+      }
+    }
+
+    // Draw something and prevent the default scrolling when touch movement is detected
+    function tr_sketchpad_touchMove(e) {
+        // Update the touch co-ordinates
+        tr_getTouchPos(e);
+
+        // During a touchmove event, unlike a mousemove event, we don't need to check if the touch is engaged, since there will always be contact with the screen by definition.
+        tr_drawLine(ctx,touchX,touchY,radius);
+
+        // Prevent a scrolling action as a result of this touchmove triggering.
+        event.preventDefault();
+    }
+
+    // Get the touch position relative to the top-left of the canvas
+    // When we get the raw values of pageX and pageY below, they take into account the scrolling on the page
+    // but not the position relative to our target div. We'll adjust them using "target.offsetLeft" and
+    // "target.offsetTop" to get the correct values in relation to the top left of the canvas.
+    function tr_getTouchPos(e) {
+        if (!e)
+            var e = event;
+
+        if(e.touches) {
+            if (e.touches.length == 1) { // Only deal with one finger
+                var touch = e.touches[0]; // Get the information for finger #1
+                touchX=touch.pageX-touch.target.offsetLeft;
+                touchY=touch.pageY-touch.target.offsetTop;
+            }
+        }
+    }
+
+
+
+
+
+
+// Molecule Sketch
+    function tr_drawAtom(atomX, atomY, letter) {
+        r=45; g=188; b=240; a=255;
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+        ctx.lineCap = "round";
+        ctx.lineWidth = 1;
+
+        ctx.fillStyle = "#2DBCF0";
+        ctx.beginPath();
+        ctx.arc(atomX, atomY, 30, 0, 2*Math.PI);
+        ctx.stroke();
+        ctx.fill();
+
+        ctx.font = "25px Montserrat";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.fillText(letter, atomX, atomY+10);
+
+        ctx.closePath();
+
+    }
+
+    function tr_drawElectrons(num, coord, color, amount){
+      console.log("drawing electrons");
+      if(color == "grey"){
+        console.log("grey");
+        r=220; g=220; b=220; a=255;
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+        ctx.lineCap = "round";
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "#DCDCDC";
+      }
+      else if(color == "blue"){
+        console.log("blue");
+        r=45; g=188; b=240; a=255;
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+        ctx.lineCap = "round";
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "#2DBCF0";
+      }
+      else{
+        console.log("black");
+        r=0; g=0; b=0; a=255;
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+        ctx.lineCap = "round";
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "#000000";
+      }
+
+      var centerX = coord[0];
+      var centerY = coord[1];
+
+
+
+      for(i=2; i<num*2; i=i+2){
+        var ax = coord[i];
+        var ay = coord[i+1];
+        var fullStatus = true;
+        if(amount == "half" && i>=6){
+          fullStatus = false;
+        }
+
+        //top region
+        if(i != 8){
+          var xMin = ax-30;
+          var xMax = ax+30;
+          var yMin = ay-67.5;
+          var yMax = ay-22.5;
+
+          for(j=0; j<2; j++){
+            var width = (xMax - xMin)/2;
+            var boxXmin = xMin + j*width;
+            var boxXmax = xMin + (j+1)*width;
+            var electronY = yMin + (yMax - yMin)/2;
+            var electronX = boxXmin + (boxXmax - boxXmin)/2;
+            var box = {
+              full: fullStatus,
+              xmin: xMin + j*width,
+              xmax: xMin + (j+1)*width,
+              ymin: yMin,
+              ymax: yMax,
+              electronY: electronY,
+              electronX: electronX,
+              color: color,
+              direction: "horizontal",
+              type: "electron",
+            }
+            boxes.push(box);
+
+            if(fullStatus == true){
+              ctx.beginPath();
+              ctx.arc(electronX, electronY, 5, 0, 2*Math.PI);
+              ctx.stroke();
+              ctx.fill();
+              ctx.closePath();
+            }
+
+          }
+        }
+
+        //bottom region
+        if(i != 6){
+          var xMin = ax-30;
+          var xMax = ax+30;
+          var yMin = ay+22.5;
+          var yMax = ay+67.5;
+          for(j=0; j<2; j++){
+            var width = (xMax - xMin)/2;
+            var boxXmin = xMin + j*width;
+            var boxXmax = xMin + (j+1)*width;
+            var electronY = yMin + (yMax - yMin)/2;
+            var electronX = boxXmin + (boxXmax - boxXmin)/2;
+            var box = {
+              full: fullStatus,
+              xmin: xMin + j*width,
+              xmax: xMin + (j+1)*width,
+              ymin: yMin,
+              ymax: yMax,
+              electronY: electronY,
+              electronX: electronX,
+              color: color,
+              direction: "horizontal",
+              type: "electron",
+            }
+            boxes.push(box);
+
+            if(fullStatus == true){
+              ctx.beginPath();
+              ctx.arc(electronX, electronY, 5, 0, 2*Math.PI);
+              ctx.stroke();
+              ctx.fill();
+              ctx.closePath();
+            }
+          }
+        }
+
+        //left region
+        if(i != 2){
+          var xMin = ax-67.5;
+          var xMax = ax-22.5;
+          var yMin = ay-30;
+          var yMax = ay+30;
+          for(j=0; j<2; j++){
+            var height = (yMax - yMin)/2;
+            var boxYmin = yMin + j*height;
+            var boxYmax = yMin + (j+1)*height;
+            var electronY = boxYmin + (boxYmax - boxYmin)/2;
+            var electronX = xMin + (xMax - xMin)/2;
+            var box = {
+              full: fullStatus,
+              xmin: xMin,
+              xmax: xMax,
+              ymin: yMin + j*height,
+              ymax: yMin + (j+1)*height,
+              electronY: electronY,
+              electronX: electronX,
+              color: color,
+              direction: "vertical",
+              type: "electron",
+            }
+            boxes.push(box);
+
+            if(fullStatus == true){
+              ctx.beginPath();
+              ctx.arc(electronX, electronY, 5, 0, 2*Math.PI);
+              ctx.stroke();
+              ctx.fill();
+              ctx.closePath();
+            }
+          }
+        }
+
+        //right region
+        if(i != 4){
+          var xMin = ax+22.5;
+          var xMax = ax+67.5;
+          var yMin = ay-30;
+          var yMax = ay+30;
+          for(j=0; j<2; j++){
+            var height = (yMax - yMin)/2;
+            var boxYmin = yMin + j*height;
+            var boxYmax = yMin + (j+1)*height;
+            var electronY = boxYmin + (boxYmax - boxYmin)/2;
+            var electronX = xMin + (xMax - xMin)/2;
+            var box = {
+              full: fullStatus,
+              xmin: xMin,
+              xmax: xMax,
+              ymin: yMin + j*height,
+              ymax: yMin + (j+1)*height,
+              electronY: electronY,
+              electronX: electronX,
+              color: color,
+              direction: "vertical",
+              type: "electron",
+            }
+            boxes.push(box);
+
+
+            if(fullStatus == true){
+              ctx.beginPath();
+              ctx.arc(electronX, electronY, 5, 0, 2*Math.PI);
+              ctx.stroke();
+              ctx.fill();
+              ctx.closePath();
+            }
+          }
+        }
+
+
+      }
+    }
+
+    function tr_drawBonds(num, coord, color, amount){
+      if(color == "grey"){
+        console.log("grey");
+        r=220; g=220; b=220; a=255;
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+        ctx.lineCap = "round";
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "#DCDCDC";
+      }
+      else if(color == "blue"){
+        console.log("blue");
+        r=45; g=188; b=240; a=255;
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+        ctx.lineCap = "round";
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "#2DBCF0";
+      }
+      else{
+        console.log("black");
+        r=0; g=0; b=0; a=255;
+        ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+        ctx.lineCap = "round";
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "#000000";
+      }
+
+      var br = num-1;
+
+
+      for(i=0; i<br*2; i=i+2){
+        var a1x = coord[0];
+        var a1y = coord[1];
+        var a2x = coord[i+2];
+        var a2y = coord[i+3];
+        var fullStatus = true;
+        if(amount == "half" && i>=4){
+          fullStatus = false;
+        }
+        if(i<3){
+
+          var bondX = a1x + 3*((a2x - a1x)/4);
+          var lastBondX = a1x + 1*((a2x - a1x)/4);
+          var lastBondY = a1y;
+          var bondY = a1y;
+
+          var box = {
+            full: fullStatus,
+            xmin: Math.min(lastBondX, bondX),
+            xmax: Math.max(bondX,lastBondX),
+            ymin: lastBondY-5,
+            ymax: bondY+5,
+            bondX: bondX,
+            lastBondX: lastBondX,
+            bondY: bondY,
+            lastBondY: lastBondY,
+            color: color,
+            direction: "horizontal",
+            type: "bond",
+          }
+
+          boxes.push(box);
+
+          if(fullStatus == true){
+            ctx.beginPath();
+            ctx.moveTo(lastBondX, lastBondY);
+            ctx.lineTo(bondX, bondY);
+
+            ctx.lineWidth = radius;
+            ctx.stroke();
+            ctx.closePath();
+          }
+
+          bondX = a1x + 3*((a2x - a1x)/4);
+          lastBondX = a1x + 1*((a2x - a1x)/4);
+          lastBondY = a1y+15;
+          bondY = a1y+15;
+
+          var box = {
+            full: fullStatus,
+            xmin: Math.min(lastBondX, bondX),
+            xmax: Math.max(bondX,lastBondX),
+            ymin: lastBondY-5,
+            ymax: bondY+5,
+            bondX: bondX,
+            lastBondX: lastBondX,
+            bondY: bondY,
+            lastBondY: lastBondY,
+            color: color,
+            direction: "horizontal",
+            type: "bond",
+          }
+
+          boxes.push(box);
+
+          if(fullStatus == true){
+            ctx.beginPath();
+            ctx.moveTo(lastBondX, lastBondY);
+            ctx.lineTo(bondX, bondY);
+
+            ctx.lineWidth = radius;
+            ctx.stroke();
+            ctx.closePath();
+          }
+
+          bondX = a1x + 3*((a2x - a1x)/4);
+          lastBondX = a1x + 1*((a2x - a1x)/4);
+          lastBondY = a1y-15;
+          bondY = a1y-15;
+
+          var box = {
+            full: fullStatus,
+            xmin: Math.min(lastBondX, bondX),
+            xmax: Math.max(bondX,lastBondX),
+            ymin: lastBondY-5,
+            ymax: bondY+5,
+            bondX: bondX,
+            lastBondX: lastBondX,
+            bondY: bondY,
+            lastBondY: lastBondY,
+            color: color,
+            direction: "horizontal",
+            type: "bond",
+          }
+
+          boxes.push(box);
+
+          if(fullStatus == true){
+            ctx.beginPath();
+            ctx.moveTo(lastBondX, lastBondY);
+            ctx.lineTo(bondX, bondY);
+
+            ctx.lineWidth = radius;
+            ctx.stroke();
+            ctx.closePath();
+          }
+
+        }
+        else{
+          var bondX = a1x;
+          var lastBondX = a1x;
+          var bondY = a1y + 3*((a2y-a1y)/4);
+          var lastBondY = a1y + 1*((a2y-a1y)/4);
+
+          var box = {
+            full: fullStatus,
+            xmin: lastBondX-5,
+            xmax: bondX+5,
+            ymin: Math.min(lastBondY, bondY),
+            ymax: Math.max(bondY, lastBondY),
+            bondX: bondX,
+            lastBondX: lastBondX,
+            bondY: bondY,
+            lastBondY: lastBondY,
+            color: color,
+            direction: "vertical",
+            type: "bond",
+          }
+
+          boxes.push(box);
+
+          if(fullStatus == true){
+            ctx.beginPath();
+            ctx.moveTo(lastBondX, lastBondY);
+            ctx.lineTo(bondX, bondY);
+
+            ctx.lineWidth = radius;
+            ctx.stroke();
+            ctx.closePath();
+          }
+
+          bondX = a1x+15;
+          lastBondX = a1x+15;
+          bondY = a1y + 3*((a2y-a1y)/4);
+          lastBondY = a1y + 1*((a2y-a1y)/4);
+
+          var box = {
+            full: fullStatus,
+            xmin: lastBondX-5,
+            xmax: bondX+5,
+            ymin: Math.min(lastBondY, bondY),
+            ymax: Math.max(bondY, lastBondY),
+            bondX: bondX,
+            lastBondX: lastBondX,
+            bondY: bondY,
+            lastBondY: lastBondY,
+            color: color,
+            direction: "vertical",
+            type: "bond",
+          }
+
+          boxes.push(box);
+
+          if(fullStatus == true){
+            ctx.beginPath();
+            ctx.moveTo(lastBondX, lastBondY);
+            ctx.lineTo(bondX, bondY);
+
+            ctx.lineWidth = radius;
+            ctx.stroke();
+            ctx.closePath();
+          }
+
+          bondX = a1x-15;
+          lastBondX = a1x-15;
+          bondY = a1y + 3*((a2y-a1y)/4);
+          lastBondY = a1y + 1*((a2y-a1y)/4);
+
+          var box = {
+            full: fullStatus,
+            xmin: lastBondX-5,
+            xmax: bondX+5,
+            ymin: Math.min(lastBondY, bondY),
+            ymax: Math.max(bondY, lastBondY),
+            bondX: bondX,
+            lastBondX: lastBondX,
+            bondY: bondY,
+            lastBondY: lastBondY,
+            color: color,
+            direction: "vertical",
+            type: "bond",
+          }
+
+          boxes.push(box);
+
+          if(fullStatus == true){
+            ctx.beginPath();
+            ctx.moveTo(lastBondX, lastBondY);
+            ctx.lineTo(bondX, bondY);
+
+            ctx.lineWidth = radius;
+            ctx.stroke();
+            ctx.closePath();
+          }
+
+        }
+      }
+    }
+
+    //Instructions
+        function tr_setInstruction(){
+          if(boardLevel == 1){
+            tr_drawBonds(numAtoms, atomCoordinates, "grey", "full");
+            var myNode = document.getElementById("trainingInstruction");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+
+            var para = document.createElement("P");
+            var t = document.createTextNode("Bonding regions are the spaces between atoms. Each line drawn represents one bond, and every bonding region can hold up to three bonds.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            t = document.createTextNode("One bond represents two electrons that are shared between the atoms it connects. Two bonds represents 4 shared electrons, and three bonds represents 6 shared electrons.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            t = document.createTextNode("Draw a line over each grey bond until all bonds are blue.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction").append(para);
+          }
+          else if(boardLevel == 2){
+            tr_drawElectrons(numAtoms, atomCoordinates, "grey", "full");
+            tr_drawCenterBonds();
+            var myNode = document.getElementById("trainingInstruction");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+
+            var para = document.createElement("P");
+            var t = document.createTextNode("Electron regions are the spaces around atoms. Electrons that are not shared between atoms are drawn in pairs, so every electron region can hold up to two electrons.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            t = document.createTextNode("One dot represents one electron for the atom it is next to.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            t = document.createTextNode("Draw an electron over each grey electron until all electrons are blue.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction").append(para);
+
+          }
+          else if(boardLevel == 3){
+            tr_drawBonds(numAtoms, atomCoordinates, "blue", "full");
+            tr_drawElectrons(numAtoms, atomCoordinates, "blue", "full");
+            var myNode = document.getElementById("trainingInstruction");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+
+            var para = document.createElement("P");
+            var t = document.createTextNode("Electrons and bonds and be removed by scribbling over them.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            t = document.createTextNode("Scribble over each bond and electron until they all turn grey.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction").append(para);
+
+          }
+          else if(boardLevel == 4){
+            tr_drawBonds(numAtoms, atomCoordinates, "black", "half");
+            tr_drawElectrons(numAtoms, atomCoordinates, "black", "half");
+            var myNode = document.getElementById("trainingInstruction");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+
+            var para = document.createElement("P");
+            var t = document.createTextNode("Electrons and bonds and be moved by circling them.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            t = document.createTextNode("Circle each bond and electron and redraw them until they all turn blue.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction").append(para);
+          }
+
+
+        }
+
+
+
+    function tr_addAtoms(num, central_atom, other_atoms) {
+
+        numAtoms = num;
+        centralAtom = central_atom;
+        otherAtoms = other_atoms;
+
+        var atomString = central_atom + " " + other_atoms + " ";
+
+
+        for(i=0; i<numAtoms*2; i=i+2){
+
+            atomX = atomCoordinates[i];
+            atomY = atomCoordinates[i+1];
+
+            atomLetter = atomString.substring(i,i+1);
+
+            tr_drawAtom(atomX, atomY, atomLetter);
+
+        }
+
+
+
+    }
+
+
+
+
+
+    // Set-up the canvas and add our event handlers after the page has loaded
+    function training_init() {
+
+        // Get the specific canvas element from the HTML document
+        canvas = document.getElementById('sketchpad');
+        canvasWidth = canvas.width;
+        canvasHeight = canvas.height;
+        // If the browser supports the canvas tag, get the 2d drawing context for this canvas
+        if (canvas.getContext)
+            ctx = canvas.getContext('2d');
+
+        // Check that we have a valid context to draw on/with before adding event handlers
+        if (ctx) {
+            numAtoms = 5;
+            centralAtom = "";
+            otherAtoms = "";
+            atomCoordinates = [canvas.width/2, canvas.width/2, (canvas.width/2 + canvas.width/4), canvas.height/2, (canvas.width/2 - canvas.width/4), canvas.height/2, canvas.width/2, (canvas.height/2 - canvas.height/4), canvas.width/2, (canvas.height/2 + canvas.height/4) ];
+            tr_addAtoms(numAtoms, centralAtom, otherAtoms);
+
+            boardLevel = 1;
+            sketchlevel = sLevels[boardLevel];
+            tr_setInstruction();
+
+            // React to mouse events on the canvas, and mouseup on the entire document
+            canvas.addEventListener('mousedown', tr_sketchpad_mouseDown, false);
+            canvas.addEventListener('mousemove', tr_sketchpad_mouseMove, false);
+            window.addEventListener('mouseup', tr_sketchpad_mouseUp, false);
+
+            // React to touch events on the canvas
+            canvas.addEventListener('touchstart', tr_sketchpad_touchStart, false);
+            canvas.addEventListener('touchend', tr_sketchpad_touchEnd, false);
+            canvas.addEventListener('touchmove', tr_sketchpad_touchMove, false);
+        }
+    }

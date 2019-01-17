@@ -1,0 +1,2 @@
+class Sketchtraining < ApplicationRecord
+end
