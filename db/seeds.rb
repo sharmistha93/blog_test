@@ -25,27 +25,3 @@ csv.each do |row|
 end
 
 puts "There are now #{Molecule.count} rows in the transactions table"
-
-
-#load training data
-csv_training_text = File.read(Rails.root.join('lib', 'seeds', 'training-data.csv'))
-csv = CSV.parse(csv_training_text, :headers => true, :encoding => 'ISO-8859-1')
-csv.each do |row|
-  t = Sketchtraining.new
-  t.pointCount = row['pointCount']
-  t.cosineStartAngle = row['cosineStartAngle']
-  t.sineStartAngle = row['sineStartAngle']
-  t.bbDiagLen = row['BBDiagLen']
-  t.bbDiagAngle = row['BBDiagAngle']
-  t.startEndDist = row['startEndDist']
-  t.startEndCosineAngle = row['startEndCosineAngle']
-  t.startEndSineAngle = row['startEndSineAngle']
-  t.strokeLength = row['strokeLength']
-  t.interpretation = row['interpretation']
-  t.save
-  puts "#{t.interpretation} saved"
-end
-
-
-
-puts "There are now #{Sketchtraining.count} rows in the sketch training table"
