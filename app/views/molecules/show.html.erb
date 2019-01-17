@@ -25,13 +25,7 @@
     </div>
     <div class="col-md-6" id="infoSection">
       <h2 class="moleculeInfoName"><%= @molecule.name %> -
-          <% @molecule.formula.split('').each do |i| %>
-              <% if i.match(/\d/) %>
-                  <sub><%= i %></sub>
-              <% else %>
-                  <%= i %>
-              <% end %>
-          <% end %>
+          
       </h2>
         <div id="moleculeInfo" class="row">
           <div class="col-md-6" id="moleculeInfoAvail">
