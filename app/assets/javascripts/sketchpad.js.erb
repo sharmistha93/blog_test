@@ -1,6 +1,7 @@
 // Variables for referencing the canvas and 2dcanvas context
     var canvas,ctx;
     var radius = 4;
+    var atomRadius = 25;
     var numAtoms;
     var centralAtom;
     var otherAtoms;
@@ -304,7 +305,7 @@
 
     function checkAnswer(){
       console.log(atoms);
-
+      document.getElementById("backToHome").innerHTML = "BACK";
       var correct = true;
       //1. all atoms must be connected (check all bonding regions)
       var myNode = document.getElementById("result1");
@@ -315,9 +316,9 @@
       var resultDiv = document.createElement('div');
 
 
-      myNode.style.border = "2px solid #2dbcf0";
-      myNode.style.borderRadius = "20px";
-      myNode.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+      //myNode.style.border = "2px solid #2dbcf0";
+      //myNode.style.borderRadius = "20px";
+      //myNode.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
       var connectedCorrect = true;
       for(i=0; i<numAtoms-1; i++){
         var box = boxes[i];
@@ -334,7 +335,8 @@
           document.getElementById("result1").appendChild(para);
           //resultDiv.appendChild(para);
 
-          document.getElementById("result1").style.borderColor = "red";
+          //document.getElementById("result1").style.borderColor = "red";
+          myNode.className = "incorrectBox";
 
           connectedCorrect = false;
           correct = false;
@@ -352,7 +354,8 @@
         para.appendChild(t);
         document.getElementById("result1").appendChild(para);
         //resultDiv.appendChild(para);
-        document.getElementById("result1").style.borderColor = "green";
+        //document.getElementById("result1").style.borderColor = "green";
+        myNode.className = "correctBox";
       }
 
 
@@ -365,9 +368,12 @@
 
       var resultDiv = document.createElement('div');
       resultDiv.className = "row";
-      var colNum = (12/atoms.length) - 1;
-      var colStyle= "col-md-"+colNum;
+      var colNum = (12/atoms.length);
 
+      var colStyle= "col-md-3";
+      if(atoms.length < 3){
+        colStyle = "col-md-4";
+      }
       for(i=0; i<atoms.length; i++){
 
         var newDiv = document.createElement('div');
@@ -379,16 +385,18 @@
           var t = document.createTextNode("Incorrect");
           para.appendChild(t);
           para.appendChild(document.createElement("br"));
+          t = document.createTextNode(atoms[i].name + " electrons");
+          para.appendChild(t);
           newDiv.appendChild(para);
 
           para = document.createElement("P");
-          t = document.createTextNode(atoms[i].name + " needs " + atoms[i].fullOctet + " electrons. ");
+          t = document.createTextNode("needs " + atoms[i].fullOctet);
           para.appendChild(t);
           para.appendChild(document.createElement("br"));
 
-          t = document.createTextNode(atoms[i].name + " is using " + atoms[i].elecCount + " electrons.");
+          t = document.createTextNode("using " + atoms[i].elecCount);
           para.appendChild(t);
-
+          para.appendChild(document.createElement("br"));
 
 
           newDiv.appendChild(para);
@@ -401,9 +409,10 @@
           fullOctetCorrect = false;
           correct = false;
 
-          newDiv.style.border = "2px solid red";
-          newDiv.style.borderRadius = "20px";
-          newDiv.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+          //newDiv.style.border = "2px solid red";
+          //newDiv.style.borderRadius = "20px";
+          //newDiv.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+          newDiv.className = colStyle + " incorrectBox resultMiniBox";
 
         }
         else{
@@ -411,23 +420,26 @@
           var t = document.createTextNode("Correct");
           para.appendChild(t);
           para.appendChild(document.createElement("br"));
+          t = document.createTextNode(atoms[i].name + " electrons");
+          para.appendChild(t);
           newDiv.appendChild(para);
 
           para = document.createElement("P");
-          t = document.createTextNode(atoms[i].name + " needs " + atoms[i].fullOctet + " electrons. ");
+          t = document.createTextNode("needs " + atoms[i].fullOctet);
           para.appendChild(t);
           para.appendChild(document.createElement("br"));
 
-          t = document.createTextNode(atoms[i].name + " is using " + atoms[i].elecCount + " electrons");
+          t = document.createTextNode("using " + atoms[i].elecCount);
           para.appendChild(t);
-
+          para.appendChild(document.createElement("br"));
 
 
           newDiv.appendChild(para);
 
-          newDiv.style.border = "2px solid green";
-          newDiv.style.borderRadius = "20px";
-          newDiv.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+          //newDiv.style.border = "2px solid green";
+          //newDiv.style.borderRadius = "20px";
+          //newDiv.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+          newDiv.className = colStyle + " correctBox resultMiniBox";
         }
 
         resultDiv.appendChild(newDiv);
@@ -444,7 +456,7 @@
           myNode.removeChild(myNode.firstChild);
       }
 
-      myNode.className = "resultBox";
+
 
       var totalElecUsed = 0;
       var totalElecAvail = 0;
@@ -478,11 +490,11 @@
         para.appendChild(document.createElement("br"));
 
         document.getElementById("result3").appendChild(para);
-        myNode.style.border = "2px solid red";
-        myNode.style.borderRadius = "20px";
-        myNode.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
-        myNode.
+        //myNode.style.border = "2px solid red";
+        //myNode.style.borderRadius = "20px";
+        //myNode.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
 
+        myNode.className = "resultBox incorrectBox";
 
         console.log("Total number of electrons used is not correct");
         console.log("Total number of electrons available to use: " + totalElecAvail);
@@ -506,14 +518,16 @@
         para.appendChild(document.createElement("br"));
 
         document.getElementById("result3").appendChild(para);
-        myNode.style.border = "2px solid green";
-        myNode.style.borderRadius = "20px";
-        myNode.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+        //myNode.style.border = "2px solid green";
+        //myNode.style.borderRadius = "20px";
+        //myNode.style.boxShadow = "1px 2px 3px rgba(0, 0, 0, 0.2)";
+        myNode.className = "resultBox correctBox";
 
       }
 
       if(correct == true){
         console.log("all correct");
+        document.getElementById("backToHome").innerHTML = "DONE";
 
       }
 
@@ -1155,7 +1169,7 @@
 
         console.log("touch start");
 
-        //drawLine(ctx,touchX,touchY,radius);
+        drawLine(ctx,touchX,touchY,radius);
         var newPoint = {
           xCoordinate: touchX,
           yCoordinate: touchY,
@@ -1175,43 +1189,125 @@
 
         console.log("touch end");
         console.log(points);
-        if(checkBoundaries != -1){
-          //collect feature data for sketch
-          var sketch = {
-            cosineStartAngle: tr_calcCosineStartAngle(points),
-            sineStartAngle: tr_calcSineStartAngle(points),
-            BBDiagLen: tr_calcBoundingBoxDiagonalLength(points),
-            BBDiagAngle: tr_calcBoundingBoxDiagonalAngle(points),
-            startEndDist: tr_calcStartEndDist(points),
-            startEndCosineAngle: tr_calcCosineStartEndAngle(points),
-            startEndSineAngle: tr_calcSineStartEndAngle(points),
-            strokeLength: tr_calcStrokeLen(points),
-            angleTrav9: tr_calcAngleTraversed9(points),
-            angleTrav10: tr_calcAngleTraversed10(points),
-            angleTrav11: tr_calcAngleTraversed11(points),
-            maxSpeed: tr_maxSpeedSquared(points),
-            pathDuration: tr_pathDuration(points),
-          };
 
-          $.ajax({
-            method: "POST",
-            url: "/molecules",
-            dataType:"json",
-            data: sketch,
-            success: function(result){
-              console.log("success");
-              console.log(result.interp);
-              document.getElementById("interp").innerHTML = result.interp;
+        var interp = "";
+
+        //collect feature data for sketch
+        var sketch = {
+          cosineStartAngle: tr_calcCosineStartAngle(points),
+          sineStartAngle: tr_calcSineStartAngle(points),
+          BBDiagLen: tr_calcBoundingBoxDiagonalLength(points),
+          BBDiagAngle: tr_calcBoundingBoxDiagonalAngle(points),
+          startEndDist: tr_calcStartEndDist(points),
+          startEndCosineAngle: tr_calcCosineStartEndAngle(points),
+          startEndSineAngle: tr_calcSineStartEndAngle(points),
+          strokeLength: tr_calcStrokeLen(points),
+          angleTrav9: tr_calcAngleTraversed9(points),
+          angleTrav10: tr_calcAngleTraversed10(points),
+          angleTrav11: tr_calcAngleTraversed11(points),
+          maxSpeed: tr_maxSpeedSquared(points),
+          pathDuration: tr_pathDuration(points),
+        };
+
+        $.ajax({
+          method: "POST",
+          url: "/molecules",
+          dataType:"json",
+          data: sketch,
+          success: function(result){
+            console.log("success");
+            console.log(result.interp);
+            //document.getElementById("interp").innerHTML = result.interp;
+
+            interp = result.interp;
+
+            if(interp == "bond" || interp == "electron"){
+              console.log(boxes);
+              console.log(points);
+              console.log("drawing " + interp);
+              var boxNum = checkBoundaries();
+              console.log(boxNum);
+              var regionNum = checkRegion(boxNum);
+              console.log(regionNum);
+              if(isValidDraw(boxNum, interp) == true){
+                console.log("valid draw");
+                boxes[boxNum].regions[regionNum].fill = true;
+                boxes[boxNum].regions[regionNum].color = "blue";
+                boxes[boxNum].count = boxes[boxNum].count+1;
+                var sketchBox = {
+                  box: boxNum,
+                  region: regionNum,
+                }
+                sketchOrder.push(sketchBox);
+                console.log("moveStatus: " + moveStatus);
+                if(moveStatus == true){
+                  console.log("moved boxes: ");
+                  console.log(movedBoxRegion);
+                  for(i=0; i<movedBoxRegion.length; i++){
+                    var moveBoxNum = movedBoxRegion[i].box;
+                    var moveRegionNum = movedBoxRegion[i].region;
+                    boxes[moveBoxNum].regions[moveRegionNum].fill = false;
+                    boxes[moveBoxNum].count = boxes[moveBoxNum].count-1;
+                  }
+
+                  movedBoxRegion = [];
+                  moveStatus = false;
+                }
+                updateAtoms();
+              }
+            }
+            else if(interp == "remove" && moveStatus == false){
+              var boxNum = checkBoundaries();
+              var removeRegions = [];
+              var regionNum = checkRemRegion(boxNum);
+
+              if(regionNum != -1){
+                boxes[boxNum].regions[regionNum].fill = false;
+                boxes[boxNum].count = boxes[boxNum].count-1;
+                updateAtoms();
+              }
+
 
             }
-          });
+            else if(interp == "move" && moveStatus == false){
+              //interp == "move"
+              var boxNum = checkMoveBoundaries();
+              var moveRegions = [];
+              movedBoxRegion = [];
+              var moveRegionStatus = false;
+              moveRegions = checkMoveRegion(boxNum);
+              for(i=0; i<moveRegions.length; i++){
+                var regionNum = moveRegions[i];
+                if(regionNum != -1 && moveStatus == false){
+                  moveRegionStatus = true;
+                  boxes[boxNum].regions[regionNum].color = "grey";
+                  var movedBR = {
+                    box: boxNum,
+                    region: regionNum,
+                  };
+                  movedBoxRegion.push(movedBR);
+                }
+              }
+              if(moveRegionStatus == true){
+                moveStatus = true;
+              }
 
-          for(i=0; i<points.length; i++){
-            drawLine(ctx, points[i].xCoordinate, points[i].yCoordinate, radius);
+
+            }
+            else{
+
+            }
+
+            clearCanvas(canvas,ctx, 1);
+            drawBoard();
+            points = [];
+
+
+
           }
-        }
+        });
 
-        points = [];
+
     }
 
     // Draw something and prevent the default scrolling when touch movement is detected
@@ -1222,7 +1318,7 @@
          console.log("touch move");
 
         // During a touchmove event, unlike a mousemove event, we don't need to check if the touch is engaged, since there will always be contact with the screen by definition.
-        //drawLine(ctx,touchX,touchY,radius);
+        drawLine(ctx,touchX,touchY,radius);
         var newPoint = {
           xCoordinate: touchX,
           yCoordinate: touchY,
@@ -1240,19 +1336,28 @@
     // but not the position relative to our target div. We'll adjust them using "target.offsetLeft" and
     // "target.offsetTop" to get the correct values in relation to the top left of the canvas.
     function getTouchPos(e) {
-        if (!e)
+        if (!e){
             var e = event;
+        }
 
         if(e.touches) {
             if (e.touches.length == 1) { // Only deal with one finger
-                var touch = e.touches[0]; // Get the information for finger #1
-                touchX=touch.pageX-touch.target.offsetLeft;
-                touchY=touch.pageY-touch.target.offsetTop;
+              var touch = e.touches[0]; // Get the information for finger #1
+              //console.log("pageX: " + touch.pageX + " offset: " + touch.target.offsetLeft);
+              //console.log("pageY: " + touch.pageY + " offset: " + touch.target.offsetTop);
+              touchX=touch.pageX - touch.target.offsetLeft;
+              touchY=touch.pageY - 100;
             }
         }
 
-        //cursor="Your Mouse Position Is : " + touchX + " and " + touchY;
-    		//document.getElementById("displayArea").innerHTML=cursor
+        //cursor="Your Touch Position Is : " + touchX + " and " + touchY;
+    		//document.getElementById("displayArea").innerHTML=cursor;
+    }
+
+    function resizeCanvas(e) {
+      var myCanvas = document.getElementById("sketchpad");
+      myCanvas.width = document.documentElement.clientWidth*(2/5);
+      myCanvas.height = document.documentElement.clientHeight*(3/4);
     }
 
 
@@ -1279,7 +1384,7 @@
 
         ctx.fillStyle = "#2DBCF0";
         ctx.beginPath();
-        ctx.arc(atomX, atomY, 30, 0, 2*Math.PI);
+        ctx.arc(atomX, atomY, atomRadius, 0, 2*Math.PI);
         ctx.stroke();
         ctx.fill();
 
@@ -1341,8 +1446,8 @@
           var regs = [];
           var xMin = Math.min(a1x, a2x);
           var xMax = Math.max(a1x, a2x);
-          var yMin = a1y-30;
-          var yMax = a1y+30;
+          var yMin = a1y-atomRadius;
+          var yMax = a1y+atomRadius;
 
           for(j=0; j<3; j++){
             var height = (yMax - yMin)/3;
@@ -1362,8 +1467,8 @@
         }
         else{
           var regs = [];
-          var xMin = a1x-30;
-          var xMax = a1x+30;
+          var xMin = a1x-atomRadius;
+          var xMax = a1x+atomRadius;
           var yMin = Math.min(a1y, a2y);
           var yMax = Math.max(a1y, a2y);
 
@@ -1402,8 +1507,8 @@
 
         //top region
         var regs = [];
-        var xMin = ax-30;
-        var xMax = ax+30;
+        var xMin = ax-atomRadius;
+        var xMax = ax+atomRadius;
         var yMin = ay-67.5;
         var yMax = ay-22.5;
 
@@ -1428,8 +1533,8 @@
 
         //bottom region
         regs = [];
-        xMin = ax-30;
-        xMax = ax+30;
+        xMin = ax-atomRadius;
+        xMax = ax+atomRadius;
         yMin = ay+22.5;
         yMax = ay+67.5;
         if(regionOverlap(xMin, xMax, yMin, yMax, br) == false){
@@ -1454,8 +1559,8 @@
         regs = [];
         xMin = ax-67.5;
         xMax = ax-22.5;
-        yMin = ay-30;
-        yMax = ay+30;
+        yMin = ay-atomRadius;
+        yMax = ay+atomRadius;
 
         if(regionOverlap(xMin, xMax, yMin, yMax, br) == false){
           for(j=0; j<2; j++){
@@ -1479,8 +1584,8 @@
         regs = [];
         xMin = ax+22.5;
         xMax = ax+67.5;
-        yMin = ay-30;
-        yMax = ay+30;
+        yMin = ay-atomRadius;
+        yMax = ay+atomRadius;
 
         if(regionOverlap(xMin, xMax, yMin, yMax, br) == false){
           for(j=0; j<2; j++){
@@ -1506,15 +1611,15 @@
     }
 
     function addMolculeInfo(){
-      var availStr = "";
-      var needStr = "";
+      var availStr = "| ";
+      var needStr = "| ";
       var totalAvail = 0;
       for(i=0; i<atoms.length; i++){
         availStr = availStr + atoms[i].name + ": " + atoms[i].elecAvail + " | ";
         totalAvail = totalAvail + parseInt(atoms[i].elecAvail);
         needStr = needStr + atoms[i].name + ": " + atoms[i].fullOctet + " | ";
       }
-      availStr = availStr + "Total: " + totalAvail;
+      var totalAvailStr = "Total: " + totalAvail;
 
       var myNode = document.getElementById("moleculeInfoAvail");
       while (myNode.firstChild) {
@@ -1527,6 +1632,9 @@
       myNode.appendChild(para);
 
       t = document.createTextNode(availStr);
+      para.appendChild(t);
+      para.appendChild(document.createElement("br"));
+      t = document.createTextNode(totalAvailStr);
       para.appendChild(t);
       para.appendChild(document.createElement("br"));
       myNode.appendChild(para);
@@ -1627,5 +1735,8 @@
             canvas.addEventListener('touchstart', sketchpad_touchStart, false);
             canvas.addEventListener('touchend', sketchpad_touchEnd, false);
             canvas.addEventListener('touchmove', sketchpad_touchMove, false);
+
+            //change sketchpad size for window resize
+            window.addEventListener("resize", resizeCanvas, false);
         }
     }

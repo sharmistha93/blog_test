@@ -6,26 +6,18 @@
   </div>
  <div class="row" id="sketchpadapp">
 
-    <div class="col-md-6">
+    <div class="col-md-7">
 
         <div class="row">
             <canvas id="sketchpad" height="600" width="600" style="border:1px solid #707070; border-radius: 10px; box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.2); background-color: white;">
             </canvas>
         </div>
-        <div class="row menu">
-            <div class="col-md-6">
-                <input class="button" type="submit" value="CLEAR" onclick="clearCanvas(canvas,ctx,-1);">
-            </div>
 
-            <div class="col-md-6">
-                <input class="button" type="submit" value="CHECK" onclick="checkAnswer();">
-            </div>
-        </div>
 
     </div>
-    <div class="col-md-6" id="infoSection">
+    <div class="col-md-5" id="infoSection">
       <h2 class="moleculeInfoName"><%= @molecule.name %> -
-          
+
       </h2>
         <div id="moleculeInfo" class="row">
           <div class="col-md-6" id="moleculeInfoAvail">
@@ -44,7 +36,21 @@
         <div class="row resultBox" id="result3">
 
         </div>
-        <%= link_to "BACK", root_path, class: "backButton"%>
+
+    </div>
+
+
+ </div>
+ <div class="row menu">
+     <div class="col-md-3">
+         <input class="button" type="submit" value="CLEAR" onclick="clearCanvas(canvas,ctx,-1);">
+     </div>
+
+     <div class="col-md-3">
+         <input class="button" type="submit" value="CHECK" onclick="checkAnswer();">
+     </div>
+     <div class="col-md-5">
+       <%= link_to "BACK", root_path, class: "backButton", id: "backToHome"%>
     </div>
 
  </div>
@@ -52,6 +58,11 @@
 
  $(document).ready(function() {
     window.onload = init();
+
+    var myCanvas = document.querySelector("#sketchpad");
+    myCanvas.width = document.documentElement.clientWidth*(9/20);
+
+    myCanvas.height = document.documentElement.clientHeight*(3/4);
 
 	  var numberAtoms = <%= @numAtoms %>;
     var centralAtom = "<%= @cenAtom %>";
