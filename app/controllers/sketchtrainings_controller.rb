@@ -3,15 +3,18 @@ class SketchtrainingsController < ApplicationController
 
 		def index
   		@sketchtrainings = Sketchtraining.all
+
   	end
 
   	def new
-  		@sketchtrainings = Sketchtraining.all
-  		@sketchtraining = Sketchtraining.new
+			@sketchtrainings = Sketchtraining.all
+			@sketchtraining = Sketchtraining.new
   	end
 
+
+
   	def create
-			puts "sketchtraining hit"
+			puts "sketchtraining create hit"
   		t = Sketchtraining.new
 			t.cosineStartAngle = ActiveSupport::JSON.decode(params["cosineStartAngle"])
 			t.sineStartAngle = ActiveSupport::JSON.decode(params["sineStartAngle"])

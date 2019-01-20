@@ -875,6 +875,89 @@
         lastY=-1;
 
       }
+      var boxI = tr_getBox(sketchlevel);
+      console.log("move status: " + moveStatus);
+      if(boxI != -1 && moveStatus == false){
+        console.log("valid draw");
+        console.log(boxI);
+        var box = boxes[boxI];
+        if(sketchlevel == "bond" || sketchlevel == "electron"){
+          box.color = "blue";
+        }
+        else{
+          box.color = "grey";
+        }
+
+        var sketch = {
+          cosineStartAngle: tr_calcCosineStartAngle(points),
+          sineStartAngle: tr_calcSineStartAngle(points),
+          BBDiagLen: tr_calcBoundingBoxDiagonalLength(points),
+          BBDiagAngle: tr_calcBoundingBoxDiagonalAngle(points),
+          startEndDist: tr_calcStartEndDist(points),
+          startEndCosineAngle: tr_calcCosineStartEndAngle(points),
+          startEndSineAngle: tr_calcSineStartEndAngle(points),
+          strokeLength: tr_calcStrokeLen(points),
+          angleTrav9: tr_calcAngleTraversed9(points),
+          angleTrav10: tr_calcAngleTraversed10(points),
+          angleTrav11: tr_calcAngleTraversed11(points),
+          maxSpeed: tr_maxSpeedSquared(points),
+          pathDuration: tr_pathDuration(points),
+          interpretation: sketchlevel,
+        };
+
+        $.ajax({
+          method: "POST",
+          url: "/sketchtrainings",
+          dataType:"json",
+          data: sketch,
+          success: function(result){
+            console.log("sketch added");
+
+          }
+        });
+
+
+
+      }
+
+      if(moveStatus == true && boxI != -1){
+        if(boxes[boxI] != false){
+          console.log("moving box")
+          boxes[movedBox].full = false;
+          boxes[boxI].full = true;
+          boxes[boxI].color = "blue";
+          moveStatus = false;
+        }
+      }
+      else if(sketchlevel == "move" && boxI != -1 && moveStatus == false){
+        moveStatus = true;
+      }
+      else{
+
+      }
+      tr_clearCanvas(canvas, ctx);
+
+      var boardStatus;
+      if(sketchlevel == "bond" || sketchlevel == "electron"){
+        boardStatus = tr_checkBoard("grey");
+      }
+      else if (sketchlevel == "remove"){
+        boardStatus = tr_checkBoard("blue");
+      }
+      else{
+        boardStatus = tr_checkBoard("black");
+      }
+
+      if(boardStatus == true){
+        boardLevel = boardLevel + 1;
+        sketchlevel = sLevels[boardLevel];
+        boxes = [];
+        tr_setInstruction();
+      }
+
+      tr_drawBoard();
+      points = [];
+
     }
 
     // Draw something and prevent the default scrolling when touch movement is detected
@@ -1496,6 +1579,8 @@
     // Set-up the canvas and add our event handlers after the page has loaded
     function training_init() {
 
+      console.log("training initializing");
+
         // Get the specific canvas element from the HTML document
         canvas = document.getElementById('sketchpad');
         canvasWidth = canvas.width;
@@ -1506,6 +1591,7 @@
 
         // Check that we have a valid context to draw on/with before adding event handlers
         if (ctx) {
+            console.log("ctx set");
             numAtoms = 5;
             centralAtom = "";
             otherAtoms = "";

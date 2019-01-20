@@ -1,0 +1,39 @@
+<body class="sketchbody">
+  <div class="moleculeHeader">
+      <h2>
+        Tutorial
+      </h2>
+  </div>
+ <div class="row" id="sketchpadapp">
+
+    <div class="col-md-7">
+
+        <div class="row">
+            <canvas id="sketchpad" height="600" width="600" style="border:1px solid #707070; border-radius: 10px; box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.2); background-color: white;">
+            </canvas>
+        </div>
+
+
+    </div>
+    <div class="col-md-5">
+        <div class="row resultBox" id="trainingInstruction">
+
+        </div>
+
+    </div>
+
+ </div>
+
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    window.onload = training_init();
+
+    <% @sketchtrainings.each do |sketchtraining| %>
+    	console.log("<%= sketchtraining.interpretation %>")
+    <% end %>
+
+  });
+
+</script>
+</body>
