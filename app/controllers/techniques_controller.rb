@@ -14,7 +14,7 @@ class TechniquesController < ApplicationController
     t.session = ActiveSupport::JSON.decode(params["id"])
     t.molecule = params["molecule"]
     t.techType = params["type"]
-    t.time = ActiveSupport::JSON.decode(params["time"])
+    
     t.save
 
     @result = t.techType

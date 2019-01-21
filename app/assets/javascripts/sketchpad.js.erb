@@ -10,7 +10,6 @@
     var electronCount
     var moleculeFormula;
     var sessionID = 3;
-    var d = new Date();
     var points = [];
 
 
@@ -530,11 +529,11 @@
       if(correct == true){
         console.log("all correct");
         document.getElementById("backToHome").innerHTML = "DONE";
+        var d = new Date();
         var technique = {
           id: sessionID,
           molecule: moleculeFormula,
           type: "done",
-          time: d.getTime(),
         };
         $.ajax({
           method: "POST",
@@ -836,6 +835,16 @@
 
         ctx.closePath();
 
+        var d = new Date();
+
+        //add point to point array
+        var newPoint = {
+          xCoordinate: x,
+          yCoordinate: y,
+          time: d.getTime()
+        };
+
+        points.push(newPoint);
 
 
 
@@ -999,13 +1008,7 @@
         mouseDown=1;
         drawLine(ctx,mouseX,mouseY,radius);
         //add point to point array
-        var newPoint = {
-          xCoordinate: mouseX,
-          yCoordinate: mouseY,
-          time: d.getTime()
-        };
 
-        points.push(newPoint);
     }
 
     // Keep track of the mouse button being released
@@ -1092,11 +1095,11 @@
               if(regionNum != -1){
                 boxes[boxNum].regions[regionNum].fill = false;
                 boxes[boxNum].count = boxes[boxNum].count-1;
+                var d = new Date();
                 var technique = {
                   id: sessionID,
                   molecule: moleculeFormula,
                   type: interp,
-                  time: d.getTime(),
                 };
                 $.ajax({
                   method: "POST",
@@ -1133,11 +1136,11 @@
                 }
               }
               if(moveRegionStatus == true){
+                var d = new Date();
                 var technique = {
                   id: sessionID,
                   molecule: moleculeFormula,
                   type: interp,
-                  time: d.getTime(),
                 };
                 $.ajax({
                   method: "POST",
@@ -1182,13 +1185,7 @@
           if (mouseDown==1) {
               drawLine(ctx,mouseX,mouseY,radius);
               //add point to point array
-              var newPoint = {
-                xCoordinate: mouseX,
-                yCoordinate: mouseY,
-                time: d.getTime()
-              };
 
-              points.push(newPoint);
           }
 
 
@@ -1220,13 +1217,7 @@
         console.log("touch start");
 
         drawLine(ctx,touchX,touchY,radius);
-        var newPoint = {
-          xCoordinate: touchX,
-          yCoordinate: touchY,
-          time: d.getTime()
-        };
 
-        points.push(newPoint);
 
         // Prevents an additional mousedown event being triggered
         event.preventDefault();
@@ -1314,11 +1305,11 @@
               if(regionNum != -1){
                 boxes[boxNum].regions[regionNum].fill = false;
                 boxes[boxNum].count = boxes[boxNum].count-1;
+                var d = new Date();
                 var technique = {
                   id: sessionID,
                   molecule: moleculeFormula,
                   type: interp,
-                  time: d.getTime(),
                 };
                 $.ajax({
                   method: "POST",
@@ -1355,11 +1346,11 @@
                 }
               }
               if(moveRegionStatus == true){
+                var d = new Date();
                 var technique = {
                   id: sessionID,
                   molecule: moleculeFormula,
                   type: interp,
-                  time: d.getTime(),
                 };
                 $.ajax({
                   method: "POST",
@@ -1401,13 +1392,7 @@
 
         // During a touchmove event, unlike a mousemove event, we don't need to check if the touch is engaged, since there will always be contact with the screen by definition.
         drawLine(ctx,touchX,touchY,radius);
-        var newPoint = {
-          xCoordinate: touchX,
-          yCoordinate: touchY,
-          time: d.getTime()
-        };
 
-        points.push(newPoint);
 
         // Prevent a scrolling action as a result of this touchmove triggering.
         event.preventDefault();
