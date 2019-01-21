@@ -999,6 +999,22 @@
         updateAtoms();
         console.log("canvas cleared");
 
+        var technique = {
+          id: sessionID,
+          molecule: moleculeFormula,
+          type: "clear",
+        };
+        $.ajax({
+          method: "POST",
+          url: "/techniques",
+          dataType:"json",
+          data: technique,
+          success: function(result){
+            console.log("clear recorded");
+          }
+
+        });
+
 
     }
 
@@ -1425,6 +1441,8 @@
       var myCanvas = document.getElementById("sketchpad");
       myCanvas.width = document.documentElement.clientWidth*(2/5);
       myCanvas.height = document.documentElement.clientHeight*(3/4);
+      atoms = [];
+      addAtoms(numAtoms, centralAtom, otherAtoms, octetCount, electronCount, moleculeFormula);
     }
 
 
