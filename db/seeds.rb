@@ -20,6 +20,7 @@ csv.each do |row|
   t.formula = row['formula']
   t.fullElectrons = row['fullElectrons']
   t.availElectrons = row['availElectrons']
+  t.donestatus = row['doneStatus']
   t.save
   puts "#{t.name}, #{t.central_atom}, #{t.other_atoms}, #{t.num_atoms}, #{t.formula}, #{t.fullElectrons}, #{t.availElectrons}, saved"
 end

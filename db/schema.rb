@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_01_11_000243) do
+ActiveRecord::Schema.define(version: 2019_01_21_002705) do
 
   create_table "molecules", force: :cascade do |t|
     t.string "name"
@@ -22,6 +22,7 @@ ActiveRecord::Schema.define(version: 2019_01_11_000243) do
     t.string "formula"
     t.string "fullElectrons"
     t.string "availElectrons"
+    t.string "donestatus"
   end
 
   create_table "posts", force: :cascade do |t|
@@ -48,6 +49,15 @@ ActiveRecord::Schema.define(version: 2019_01_11_000243) do
     t.float "angleTrav11"
     t.float "maxSpeed"
     t.float "pathDuration"
+  end
+
+  create_table "techniques", force: :cascade do |t|
+    t.integer "session"
+    t.string "molecule"
+    t.integer "time"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "techType"
   end
 
 end

@@ -29,6 +29,11 @@ class MoleculesController < ApplicationController
 
 	end
 
+	def update
+		puts "update molecule"
+		
+	end
+
   def find_molecule
   		@molecule = Molecule.find(params[:id])
  	end

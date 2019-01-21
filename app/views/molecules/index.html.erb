@@ -1,11 +1,16 @@
 
 <% counter = 0 %>
-<div class="mainHeader headerwhite">
-      <!--<%= link_to "Home", root_path %>
-      <%= link_to "New Post", new_post_path %>-->
-      <h2>chemisketch</h2>
+<div class="mainHeader headerwhite row">
+        <div class="col-md-8">
+          <h2>chemisketch</h2>
+        </div>
+        <div class="col-md-3 tutorialSection">
+            <%= link_to "TUTORIAL", sketchtrainings_path, class: "tutorialButton", id: "backToHome"%>
+        </div>
 </div>
+
 <div class ="moleculeSelectorSection">
+
 	<div class="row">
 
 		<% @molecules.each do |molecule| %>
@@ -21,7 +26,7 @@
 			<% else %>
 				<%= link_to molecule, class: 'col-md-3 boxed', :action => 'go' do %>
 					<p class="molecule_formula">
-					
+
 					</p>
 					<p class="molecule_name"><%=molecule.name%></p>
 				<% end %>

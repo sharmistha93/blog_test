@@ -8,6 +8,8 @@
     var atomCoordinates = [];
     var octetCount;
     var electronCount
+    var moleculeFormula;
+    var sessionID = 3;
     var d = new Date();
     var points = [];
 
@@ -528,6 +530,22 @@
       if(correct == true){
         console.log("all correct");
         document.getElementById("backToHome").innerHTML = "DONE";
+        var technique = {
+          id: sessionID,
+          molecule: moleculeFormula,
+          type: "done",
+          time: d.getTime(),
+        };
+        $.ajax({
+          method: "POST",
+          url: "/techniques",
+          dataType:"json",
+          data: technique,
+          success: function(result){
+            console.log("done recorded");
+          }
+
+        });
 
       }
 
@@ -968,7 +986,7 @@
         }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         atoms = [];
-        addAtoms(numAtoms, centralAtom, otherAtoms, octetCount, electronCount);
+        addAtoms(numAtoms, centralAtom, otherAtoms, octetCount, electronCount, moleculeFormula);
         updateAtoms();
         console.log("canvas cleared");
 
@@ -1074,6 +1092,22 @@
               if(regionNum != -1){
                 boxes[boxNum].regions[regionNum].fill = false;
                 boxes[boxNum].count = boxes[boxNum].count-1;
+                var technique = {
+                  id: sessionID,
+                  molecule: moleculeFormula,
+                  type: interp,
+                  time: d.getTime(),
+                };
+                $.ajax({
+                  method: "POST",
+                  url: "/techniques",
+                  dataType:"json",
+                  data: technique,
+                  success: function(result){
+                    console.log("remove recorded");
+                  }
+
+                });
                 updateAtoms();
               }
 
@@ -1099,6 +1133,22 @@
                 }
               }
               if(moveRegionStatus == true){
+                var technique = {
+                  id: sessionID,
+                  molecule: moleculeFormula,
+                  type: interp,
+                  time: d.getTime(),
+                };
+                $.ajax({
+                  method: "POST",
+                  url: "/techniques",
+                  dataType:"json",
+                  data: technique,
+                  success: function(result){
+                    console.log("move recorded");
+                  }
+
+                });
                 moveStatus = true;
               }
 
@@ -1218,8 +1268,8 @@
             console.log("success");
             console.log(result.interp);
             //document.getElementById("interp").innerHTML = result.interp;
-
             interp = result.interp;
+
 
             if(interp == "bond" || interp == "electron"){
               console.log(boxes);
@@ -1264,6 +1314,22 @@
               if(regionNum != -1){
                 boxes[boxNum].regions[regionNum].fill = false;
                 boxes[boxNum].count = boxes[boxNum].count-1;
+                var technique = {
+                  id: sessionID,
+                  molecule: moleculeFormula,
+                  type: interp,
+                  time: d.getTime(),
+                };
+                $.ajax({
+                  method: "POST",
+                  url: "/techniques",
+                  dataType:"json",
+                  data: technique,
+                  success: function(result){
+                    console.log("remove recorded");
+                  }
+
+                });
                 updateAtoms();
               }
 
@@ -1289,6 +1355,22 @@
                 }
               }
               if(moveRegionStatus == true){
+                var technique = {
+                  id: sessionID,
+                  molecule: moleculeFormula,
+                  type: interp,
+                  time: d.getTime(),
+                };
+                $.ajax({
+                  method: "POST",
+                  url: "/techniques",
+                  dataType:"json",
+                  data: technique,
+                  success: function(result){
+                    console.log("move recorded");
+                  }
+
+                });
                 moveStatus = true;
               }
 
@@ -1302,9 +1384,9 @@
             drawBoard();
             points = [];
 
-
-
           }
+
+
         });
 
 
@@ -1657,13 +1739,14 @@
 
     }
 
-    function addAtoms(num, central_atom, other_atoms, octet_count, electron_count) {
+    function addAtoms(num, central_atom, other_atoms, octet_count, electron_count, formula) {
         console.log("adding atoms..");
         numAtoms = num;
         centralAtom = central_atom;
         otherAtoms = other_atoms;
         octetCount = octet_count;
         electronCount = electron_count;
+        moleculeFormula = formula;
 
         var atomString = central_atom + " " + other_atoms + " ";
         var atomLetters = [];

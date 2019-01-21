@@ -1,0 +1,20 @@
+<div class="techniqueTable">
+  <h2>Technique Records</h2>
+  <table>
+    <tr>
+      <th>Session ID</th>
+      <th>Molecule</th>
+      <th>Type</th>
+      <th>Time</th>
+    </tr>
+    <% @techniques.each do |technique| %>
+    <tr>
+      <td><%=technique.session%></td>
+      <td><%=technique.molecule%></td>
+      <td><%=technique.techType%></td>
+      <td><%=technique.time%></td>
+    </tr>
+    <% end %>
+
+  </table>
+</div>

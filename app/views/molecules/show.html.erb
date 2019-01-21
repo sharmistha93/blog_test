@@ -69,9 +69,10 @@
     var otherAtoms = "<%= @othAtoms %>";
     var fullElec = "<%= @fullElectrons %>";
     var availElec = "<%= @availElectrons %>";
+    var molecule = "<%= @molecule.formula %>";
 
 
-    addAtoms(numberAtoms, centralAtom, otherAtoms, fullElec, availElec);
+    addAtoms(numberAtoms, centralAtom, otherAtoms, fullElec, availElec, molecule);
     drawRegions();
 
 });

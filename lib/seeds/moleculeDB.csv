@@ -1,10 +1,10 @@
-name,central_atom,other_atoms,num_atoms,formula,fullElectrons,availElectrons
-Water,O,H H,3,H2O,822,611
-Ozone,O,O,2,O2,88,66
-Carbon Dioxide,C,O O,3,CO2,888,466
-Hydrogen Cyanide,C,H N,3,HCN,828,415
-Hydrofluoric Acid,F,H,2,HF,82,71
-Formaldehyde,C,H H O,4,CH2O,8228,4116
-Ammonia,N,H H H,4,NH3,8222,5111
-Borane,B,H H H,4,BH3,8222,3111
-Methane,C,H H H H,5,CH3,82222,41111
+name,central_atom,other_atoms,num_atoms,formula,fullElectrons,availElectrons,doneStatus
+Water,O,H H,3,H2O,822,611,falsebox
+Ozone,O,O,2,O2,88,66,falsebox
+Carbon Dioxide,C,O O,3,CO2,888,466,falsebox
+Hydrogen Cyanide,C,H N,3,HCN,828,415,falsebox
+Hydrofluoric Acid,F,H,2,HF,82,71,falsebox
+Formaldehyde,C,H H O,4,CH2O,8228,4116,falsebox
+Ammonia,N,H H H,4,NH3,8222,5111,falsebox
+Borane,B,H H H,4,BH3,6222,3111,falsebox
+Methane,C,H H H H,5,CH3,82222,41111,falsebox
