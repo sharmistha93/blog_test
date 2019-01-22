@@ -31,7 +31,7 @@ class MoleculesController < ApplicationController
 
 	def update
 		puts "update molecule"
-		
+
 	end
 
   def find_molecule
