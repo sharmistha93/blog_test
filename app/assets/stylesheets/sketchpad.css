@@ -1,7 +1,7 @@
 /* Some CSS styling */
 body {
     background-color: #2dbcf0;
-    overflow: hidden;
+    margin: 0; height: 100%; overflow: hidden;
 }
 
 .sketchbody {

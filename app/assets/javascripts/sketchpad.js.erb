@@ -999,22 +999,29 @@
         updateAtoms();
         console.log("canvas cleared");
 
-        var technique = {
-          id: sessionID,
-          molecule: moleculeFormula,
-          type: "clear",
-        };
-        $.ajax({
-          method: "POST",
-          url: "/techniques",
-          dataType:"json",
-          data: technique,
-          success: function(result){
-            console.log("clear recorded");
-          }
 
-        });
 
+
+    }
+
+    function clearButton(){
+      var technique = {
+        id: sessionID,
+        molecule: moleculeFormula,
+        type: "clear",
+      };
+      $.ajax({
+        method: "POST",
+        url: "/techniques",
+        dataType:"json",
+        data: technique,
+        success: function(result){
+          console.log("clear recorded");
+        }
+
+      });
+
+      clearCanvas(canvas,ctx, 1);
 
     }
 
@@ -1441,8 +1448,9 @@
       var myCanvas = document.getElementById("sketchpad");
       myCanvas.width = document.documentElement.clientWidth*(2/5);
       myCanvas.height = document.documentElement.clientHeight*(3/4);
-      atoms = [];
-      addAtoms(numAtoms, centralAtom, otherAtoms, octetCount, electronCount, moleculeFormula);
+      clearCanvas(canvas,ctx, 1);
+      
+      drawBoard();
     }
 
 
@@ -1500,6 +1508,206 @@
       return false;
     }
 
+    /*function updateRegions() {
+      var coord = atomCoordinates;
+      r=45; g=188; b=240; a=255;
+
+      ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+
+
+      ctx.lineCap = "round";
+
+
+      ctx.lineWidth = 1;
+
+      ctx.fillStyle = "#FFFFFF";
+
+      for(i=0; i<boxes.length; i++){
+        var box = boxes[i];
+
+        //updates bond regions
+        if(box.type == "bond"){
+          var a1x = coord[0];
+          var a1y = coord[1];
+          var a2x = coord[i+2];
+          var a2y = coord[i+3];
+          ctx.beginPath();
+
+          //horizontal bonds
+          if(box.direction == "horizontal"){
+            var xMin = Math.min(a1x, a2x);
+            var xMax = Math.max(a1x, a2x);
+            var yMin = a1y-atomRadius;
+            var yMax = a1y+atomRadius;
+
+            for(j=0; j<3; j++){
+              var height = (yMax - yMin)/3;
+              var bondX = xMin + 3*((xMax-xMin)/4);
+              var lastBondX = xMin + 1*((xMax-xMin)/4);
+              var lastBondY = (yMin + j*height) + 1*((yMin + (j+1)*height) - (yMin + j*height))/2;
+              var bondY = (yMin + j*height) + 1*((yMin + (j+1)*height) - (yMin + j*height))/2;
+
+              var region = box.regions[j];
+
+              region.xmin = xMin;
+              region.xmax = xMax;
+              region.ymin = yMin + j*height;
+              region.ymax = yMin + (j+1)*height;
+              region.bondX = bondX;
+              region.lastBondX = lastBondX;
+              region.bondY = bondY;
+              region.lastBondY = lastBondY;
+              ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+              ctx.stroke();
+              ctx.fill();
+
+            }
+          }
+          //vertical bonds
+          else{
+            var xMin = a1x-atomRadius;
+            var xMax = a1x+atomRadius;
+            var yMin = Math.min(a1y, a2y);
+            var yMax = Math.max(a1y, a2y);
+
+            for(j=0; j<3; j++){
+              var width = (xMax - xMin)/3;
+              var bondX = (xMin + j*width) + 1*((xMin + (j+1)*width) - (xMin + j*width))/2;
+              var lastBondX = (xMin + j*width) + 1*((xMin + (j+1)*width) - (xMin + j*width))/2;
+              var lastBondY = yMin + 3*((yMax - yMin)/4);
+              var bondY = yMin + 1*((yMax - yMin)/4);
+
+              var region = box.regions[j];
+
+              region.xmin = xMin + j*width;
+              region.xmax = xMin + (j+1)*width;
+              region.ymin = yMin;
+              region.ymax = yMax;
+              region.bondX = bondX;
+              region.lastBondX = lastBondX;
+              region.bondY = bondY;
+              region.lastBondY = lastBondY;
+              ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+              ctx.stroke();
+              ctx.fill();
+
+            }
+          }
+
+        }
+        //update electron regions
+        else{
+          var ax = coord[i];
+          var ay = coord[i+1];
+          ctx.beginPath();
+
+          //horizontal electrons
+          if(box.direction == "horizontal"){
+            if(box.placement == "top"){
+              var xMin = ax-atomRadius;
+              var xMax = ax+atomRadius;
+              var yMin = ay-67.5;
+              var yMax = ay-22.5;
+
+              for(j=0; j<2; j++){
+                var width = (xMax - xMin)/2;
+                var electronY = yMin + ((yMax - yMin)/2);
+                var electronX = (xMin + j*width) + (((xMin + (j+1)*width) - (xMin + j*width))/2);
+
+                var region = box.regions[j];
+
+                region.xmin = xMin + j*width;
+                region.xmax = xMin + (j+1)*width;
+                region.ymin = yMin;
+                region.ymax = yMax;
+                region.electronX = electronX;
+                region.electronY = electronY;
+                ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+                ctx.stroke();
+                ctx.fill();
+
+              }
+            }
+            else{
+              xMin = ax-atomRadius;
+              xMax = ax+atomRadius;
+              yMin = ay+22.5;
+              yMax = ay+67.5;
+
+              for(j=0; j<2; j++){
+                var width = (xMax - xMin)/2;
+                var electronY = yMin + ((yMax - yMin)/2);
+                var electronX = (xMin + j*width) + (((xMin + (j+1)*width) - (xMin + j*width))/2);
+                var region = box.regions[j];
+
+                region.xmin = xMin + j*width;
+                region.xmax = xMin + (j+1)*width;
+                region.ymin = yMin;
+                region.ymax = yMax;
+                region.electronX = electronX;
+                region.electronY = electronY;
+                ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+                ctx.stroke();
+                ctx.fill();
+
+            }
+          }
+        }
+          //vertical electrons
+          else{
+            if(box.placement == "left"){
+              var xMin = ax-67.5;
+              var xMax = ax-22.5;
+              var yMin = ay-atomRadius;
+              var yMax = ay+atomRadius;
+
+              for(j=0; j<2; j++){
+                var height = (yMax - yMin)/2;
+                var electronY = (yMin + j*height) + (((yMin + (j+1)*height) - (yMin + j*height))/2);
+                var electronX = xMin + ((xMax - xMin)/2);
+                var region = box.regions[j];
+
+                region.xmin = xMin;
+                region.xmax = xMax;
+                region.ymin = yMin + j*height;
+                region.ymax = yMin + (j+1)*height;
+                region.electronX = electronX;
+                region.electronY = electronY;
+                ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+                ctx.stroke();
+                ctx.fill();
+
+              }
+            }
+            else{
+              var xMin = ax+22.5;
+              var xMax = ax+67.5;
+              var yMin = ay-atomRadius;
+              var yMax = ay+atomRadius;
+
+              for(j=0; j<2; j++){
+                var height = (yMax - yMin)/2;
+                var electronY = (yMin + j*height) + (((yMin + (j+1)*height) - (yMin + j*height))/2);
+                var electronX = xMin + ((xMax - xMin)/2);
+                var region = box.regions[j];
+
+                region.xmin = xMin;
+                region.xmax = xMax;
+                region.ymin = yMin + j*height;
+                region.ymax = yMin + (j+1)*height;
+                region.electronX = electronX;
+                region.electronY = electronY;
+                ctx.rect(region.xmin, region.ymin, region.xmax-region.xmin, region.ymax-region.ymin);
+                ctx.stroke();
+                ctx.fill();
+              }
+            }
+          }
+
+        }
+      }
+    }*/
+
   //Electron & Bonding Region Sketch
     function drawRegions(){
       console.log("drawing regions...");
@@ -1521,12 +1729,12 @@
 
       //BONDING REGIONS
       for(i=0; i<br*2; i=i+2){
-        a1x = coord[0];
-        a1y = coord[1];
-        a2x = coord[i+2];
-        a2y = coord[i+3];
+        var a1x = coord[0];
+        var a1y = coord[1];
+        var a2x = coord[i+2];
+        var a2y = coord[i+3];
         var atom_list = [0, (i/2 + 1)];
-        ctx.beginPath();
+        //ctx.beginPath();
         if(i < 3){
           var regs = [];
           var xMin = Math.min(a1x, a2x);
@@ -1586,8 +1794,8 @@
       //ELECTRON REGIONS
       for(i=0; i<num*2; i=i+2){
 
-        ax = coord[i];
-        ay = coord[i+1];
+        var ax = coord[i];
+        var ay = coord[i+1];
         var atom_list = [i/2];
 
         //top region
@@ -1608,7 +1816,7 @@
             //ctx.stroke();
           }
           //ctx.beginPath();
-          var box = {type: "electron", direction: "horizontal", count: 0, max: 2, xmin:xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
+          var box = {type: "electron", direction: "horizontal", placement: "top", count: 0, max: 2, xmin:xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
           boxes.push(box);
           //ctx.rect(xMin, yMin, xMax-xMin, yMax-yMin);
           //ctx.stroke();
@@ -1633,7 +1841,7 @@
             //ctx.stroke();
           }
           //ctx.beginPath();
-          var box = {type: "electron", direction: "horizontal", count: 0, max: 2, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
+          var box = {type: "electron", direction: "horizontal", placement: "bottom", count: 0, max: 2, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
           boxes.push(box);
           //ctx.rect(xMin, yMin, xMax-xMin, yMax-yMin);
           //ctx.stroke();
@@ -1658,7 +1866,7 @@
             //ctx.stroke();
           }
           //ctx.beginPath();
-          var box = {type: "electron", direction: "vertical", count: 0, max: 2, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
+          var box = {type: "electron", direction: "vertical", placement: "left", count: 0, max: 2, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
           boxes.push(box);
           //ctx.rect(xMin, yMin, xMax-xMin, yMax-yMin);
           //ctx.stroke();
@@ -1683,7 +1891,7 @@
             //ctx.stroke();
           }
           //ctx.beginPath();
-          var box = {type: "electron", direction: "vertical", count: 0, max: 2, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
+          var box = {type: "electron", direction: "vertical", placement: "right", count: 0, max: 2, xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax, regions: regs, atoms: atom_list};
           boxes.push(box);
           //ctx.rect(xMin, yMin, xMax-xMin, yMax-yMin);
           //ctx.stroke();
@@ -1757,6 +1965,7 @@
 
         atomCoordinates = [canvas.width/2, canvas.height/2, (canvas.width/2 + canvas.width/4), canvas.height/2, (canvas.width/2 - canvas.width/4), canvas.height/2, canvas.width/2, (canvas.height/2 - canvas.height/4), canvas.width/2, (canvas.height/2 + canvas.height/4) ];
 
+        //updateRegions();
 
 
         for(i=0; i<numAtoms*2; i=i+2){
