@@ -1,13 +1,12 @@
 
 <body class="sketchbody">
-  <div class="mainHeader headerblue">
-        <h2><%= link_to "chemisketch", {controller: "molecules", action: "index"}, class: "colorBlue"%></h2>
 
-  </div>
  <div class="row" id="sketchpadapp">
 
     <div class="col-md-7">
-
+      <div class="mainHeader headerblue">
+            <h2><%= link_to "chemisketch", {controller: "molecules", action: "index"}, class: "colorBlue"%></h2>
+      </div>
         <div class="row">
             <canvas id="sketchpad" height="600" width="600" style="border:1px solid #707070; border-radius: 10px; box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.2); background-color: white;">
             </canvas>
