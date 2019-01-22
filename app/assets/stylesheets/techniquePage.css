@@ -16,4 +16,13 @@ tr:nth-child(even) {
 
 .techniqueTable {
   background-color: white;
+  margin: auto;
+  padding:4px;
+  display: block;
+
+  width: 1000px;
+  height: 600px;
+  overflow-x: hidden;
+  overflow-x: auto;
+  text-align:justify;
 }

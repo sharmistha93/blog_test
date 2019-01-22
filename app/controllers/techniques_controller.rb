@@ -11,10 +11,10 @@ class TechniquesController < ApplicationController
   def create
     puts "technique create hit"
     t = Technique.new
-    t.session = ActiveSupport::JSON.decode(params["id"])
+    t.session = params["id"]
     t.molecule = params["molecule"]
     t.techType = params["type"]
-    
+
     t.save
 
     @result = t.techType

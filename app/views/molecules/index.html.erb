@@ -1,15 +1,30 @@
 
 <% counter = 0 %>
 <div class="mainHeader headerwhite row">
-        <div class="col-md-8">
+        <div class="col-md-3 buttonSection">
+            <button class="menuButton" id="myBtn">SESSION</button>
+        </div>
+        <div class="col-md-5">
           <h2>chemisketch</h2>
         </div>
-        <div class="col-md-3 tutorialSection">
-            <%= link_to "TUTORIAL", sketchtrainings_path, class: "tutorialButton", id: "backToHome"%>
+        <div class="col-md-3 buttonSection">
+            <%= link_to "TUTORIAL", sketchtrainings_path, class: "menuButton"%>
         </div>
 </div>
 
 <div class ="moleculeSelectorSection">
+  <div id="myModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <p id="currentSession"></p>
+    <p id="errorSession"></p>
+    <form>
+      Change Session ID: <input type="text" id="newSession" name="sessionid"><br>
+      <input class = "modal-button" type="button" onclick="changeSession()" value="Submit">
+    </form>
+  </div>
+
+</div>
 
 	<div class="row">
 
@@ -41,3 +56,36 @@
 		<% end %>
 	</div>
 </div>
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    window.onload = setSession();
+    // Get the modal
+    var modal = document.getElementById('myModal');
+
+    // Get the button that opens the modal
+    var btn = document.getElementById("myBtn");
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on the button, open the modal
+    btn.onclick = function() {
+      modal.style.display = "block";
+    }
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+  });
+
+</script>

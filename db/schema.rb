@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_01_21_002705) do
+ActiveRecord::Schema.define(version: 2019_01_22_204311) do
 
   create_table "molecules", force: :cascade do |t|
     t.string "name"
@@ -52,7 +52,7 @@ ActiveRecord::Schema.define(version: 2019_01_21_002705) do
   end
 
   create_table "techniques", force: :cascade do |t|
-    t.integer "session"
+    t.string "session"
     t.string "molecule"
     t.integer "time"
     t.datetime "created_at", null: false

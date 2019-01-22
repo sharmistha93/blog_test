@@ -9,7 +9,7 @@
     var octetCount;
     var electronCount
     var moleculeFormula;
-    var sessionID = 3;
+    var sessionID = "";
     var points = [];
 
 
@@ -2004,6 +2004,43 @@
 
     }
 
+    function setSession() {
+      var sessionStatement = "Current Session: " + sessionID;
+      document.getElementById("currentSession").innerHTML = sessionStatement;
+      var sessionBtn = "SESSION: " + sessionID;
+
+      document.getElementById('myBtn').innerHTML = sessionBtn;
+      if(sessionID != ""){
+        document.getElementById('myModal').style.display = "none";
+      }
+      else{
+        document.getElementById('myModal').style.display = "block";
+      }
+
+
+    }
+
+    function changeSession() {
+      var newSessionID = document.getElementById("newSession").value;
+
+      if(newSessionID != ""){
+        sessionID = newSessionID;
+        var sessionStatement = "Current Session: " + sessionID
+        document.getElementById("currentSession").innerHTML = sessionStatement;
+
+        var sessionBtn = "SESSION: " + sessionID;
+
+        document.getElementById('myBtn').innerHTML = sessionBtn;
+
+        document.getElementById('myModal').style.display = "none";
+      }
+      else{
+        var sessionErrorStatement = "Error: Enter SessionID";
+        document.getElementById("errorSession").innerHTML = sessionErrorStatement;
+      }
+
+
+    }
 
 
     // Set-up the canvas and add our event handlers after the page has loaded
