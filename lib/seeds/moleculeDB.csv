@@ -8,3 +8,10 @@ Formaldehyde,C,H H O,4,CH2O,8228,4116,falsebox
 Ammonia,N,H H H,4,NH3,8222,5111,falsebox
 Borane,B,H H H,4,BH3,6222,3111,falsebox
 Methane,C,H H H H,5,CH3,82222,41111,falsebox
+Oxygen Difluoride,O,F F,3,OF2,888,677,falsebox
+Boran Trifluoride,B,F F F,4,BF3,6888,3777,falsebox
+Carbon Disulfide,C,S S,3,CS2,888,466,falsebox
+Sulfur Trioxide,S,O O O,4,SO3,8888,6666,falsebox
+Carbon Monoxide,O,C,2,CO,88,64,falsebox
+Nitrogen,N,N,2,N2,88,55,falsebox
+Hydrochloric Acid,Cl,H,2,HCl,82,71,falsebox
