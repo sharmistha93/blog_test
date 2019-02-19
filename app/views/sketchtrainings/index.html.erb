@@ -12,17 +12,34 @@
     <div class="col-md-7">
 
         <div class="row">
-            <canvas id="sketchpad" height="600" width="600" style="border:1px solid #707070; border-radius: 10px; box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.2); background-color: white;">
+            <canvas id="sketchpad" height="550" width="550" style="border:1px solid #707070; border-radius: 10px; box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.2); background-color: white;">
             </canvas>
         </div>
 
 
     </div>
     <div class="col-md-5">
-        <div class="row resultBox" id="trainingInstruction">
+        <h2 class="moleculeInfoName">
+
+        </h2>
+        <div id="moleculeInfo" class="row">
+          <div class="col-md-6" id="moleculeInfoAvail">
+          </div>
+          <div class="col-md-6" id="moleculeInfoNeed">
+          </div>
+        </div>
+        <div class="row resultBox" id="trainingInstruction1">
 
         </div>
+        <div class="row resultBox" id="trainingInstruction2">
 
+        </div>
+        <div class="row resultBox" id="trainingInstruction3">
+
+        </div>
+        <div class = "row" id="nextButton">
+          <input class="button" type="submit" value="NEXT" onclick="nextTutorial();">
+        </div>
     </div>
 
  </div>
@@ -30,7 +47,11 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
+
     window.onload = training_init();
+
+
+
 
     <% @sketchtrainings.each do |sketchtraining| %>
     	console.log("<%= sketchtraining.interpretation %>")

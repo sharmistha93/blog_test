@@ -5,6 +5,23 @@ class MoleculesController < ApplicationController
 
 	def index
   		@molecules = Molecule.all
+			if((params["s_id"]).nil? == false)
+				@sessionID = (params["s_id"])
+				@version = (params["version"])
+
+				puts "session saved"
+				session[:current_sID] = @sessionID
+				session[:current_version] = @version
+			elsif(session[:current_sID].nil? == false)
+				@sessionID = session[:current_sID]
+				@version = session[:current_version]
+			else
+				@sessionID = ""
+				@version = ""
+			end
+
+			puts @sessionID
+			puts @version
   end
 
   def show

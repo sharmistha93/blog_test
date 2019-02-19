@@ -20,6 +20,11 @@
     <p id="errorSession"></p>
     <form>
       Change Session ID: <input type="text" id="newSession" name="sessionid"><br>
+      Select Version:
+      <select id="version" name="version">
+        <option value="techYes">Techniques Enabled</option>
+        <option value="techNo">Undo Enabled</option>
+      </select>
       <input class = "modal-button" type="button" onclick="changeSession()" value="Submit">
     </form>
   </div>
@@ -59,7 +64,9 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
-    window.onload = setSession();
+    var s_id = "<%= @sessionID %>";
+    var s_ver = "<%= @version %>";
+    setSession(s_id, s_ver);
     // Get the modal
     var modal = document.getElementById('myModal');
 

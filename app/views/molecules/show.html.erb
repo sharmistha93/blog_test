@@ -35,21 +35,23 @@
         <div class="row resultBox" id="result3">
 
         </div>
-
+        <div class="backButtonSection">
+          <%= link_to "BACK", root_path, class: "backButton", id: "backToHome"%>
+        </div>
     </div>
 
 
  </div>
  <div class="row menu">
-     <div class="col-md-3">
+     <div class="col-md-2">
          <input class="button" type="submit" value="CLEAR" onclick="clearButton();">
      </div>
 
-     <div class="col-md-3">
+     <div class="col-md-2">
          <input class="button" type="submit" value="CHECK" onclick="checkAnswer();">
      </div>
-     <div class="col-md-5">
-       <%= link_to "BACK", root_path, class: "backButton", id: "backToHome"%>
+     <div class="col-md-2" id="undoButton">
+       <input class="button" type="submit" value="UNDO" onclick="undoSketch();">
     </div>
 
  </div>

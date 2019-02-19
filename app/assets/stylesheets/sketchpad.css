@@ -66,13 +66,13 @@ body {
 
 .button {
     background-color: #2dbcf0;
-    border: 2px solid #2dbcf0;
+    border: 2px solid white;
     font-family: 'Montserrat', sans-serif;
     letter-spacing: 3px;
     color: white;
     padding: 10px;
-    padding-right: 20px;
-    padding-left: 20px;
+    padding-right: 10px;
+    padding-left: 10px;
 
     text-align: center;
     text-decoration: none;
@@ -98,8 +98,12 @@ body {
   border-radius: 20px;
   box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.2);
 
-  margin: 230px;
+  margin: 150px;
 
+}
+
+.backButtonSection {
+  margin-top: 50px;
 }
 
 .colorBlue {

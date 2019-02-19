@@ -6,13 +6,16 @@
     var centralAtom;
     var otherAtoms;
     var atomCoordinates = [];
+    var octetCount;
+    var electronCount
+    var moleculeFormula;
 
     var points = [];
     var boxes = [];
     var movedBox;
 
     var sketches = [];
-    var sLevels = ["--", "bond", "electron", "remove", "move", "example"];
+    var sLevels = ["--", "bond", "electron", "remove", "move", "move"];
     var sketchlevel;
     var boardLevel;
     var moveStatus = false;
@@ -398,6 +401,10 @@
       console.log("getting box");
       console.log(boxes.length);
 
+      if(points.length < 3){
+        return -1;
+      }
+
       var boundYmax = tr_getYmax();
       var boundYmin = tr_getYmin();
       var boundXmax = tr_getXmax();
@@ -657,7 +664,9 @@
       for(i=0; i<boxes.length; i++){
         var box = boxes[i];
         if(box.color == color){
-          return false;
+          if(box.full == true){
+            return false;
+          }
         }
       }
 
@@ -718,11 +727,27 @@
         lastY=y;
     }
 
+    function nextTutorial(){
+      boardLevel = boardLevel + 1;
+      var version = getVersion();
+      if(version == "techNo" && boardLevel == 3){
+        boardLevel = 7;
+      }
+      sketchlevel = sLevels[boardLevel];
+      boxes = [];
+      tr_clearCanvas(canvas, ctx);
+      tr_setInstruction();
+      tr_drawBoard();
+
+    }
+
     // Clear the canvas context using the canvas width and height
     function tr_clearCanvas(canvas,ctx) {
       console.log("clearing canvas");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        tr_addAtoms(numAtoms, centralAtom, otherAtoms);
+        if(boardLevel < 6){
+          tr_addAtoms(numAtoms, centralAtom, otherAtoms);
+        }
     }
 
     // Keep track of the mouse button being pressed and draw a dot at current location
@@ -735,6 +760,7 @@
 
     // Keep track of the mouse button being released
     function tr_sketchpad_mouseUp() {
+        console.log("training mouse up");
           if (mouseDown = 1){
             mouseDown=0;
 
@@ -752,6 +778,7 @@
               box.color = "blue";
             }
             else{
+              box.full = true;
               box.color = "grey";
             }
 
@@ -804,6 +831,7 @@
           }
           tr_clearCanvas(canvas, ctx);
 
+          tr_drawBoard();
           var boardStatus;
           if(sketchlevel == "bond" || sketchlevel == "electron"){
             boardStatus = tr_checkBoard("grey");
@@ -816,13 +844,12 @@
           }
 
           if(boardStatus == true){
-            boardLevel = boardLevel + 1;
+            /*boardLevel = boardLevel + 1;
             sketchlevel = sLevels[boardLevel];
             boxes = [];
-            tr_setInstruction();
+            tr_setInstruction();*/
+            $("#nextButton").show();
           }
-
-          tr_drawBoard();
           points = [];
 
 
@@ -937,6 +964,7 @@
       }
       tr_clearCanvas(canvas, ctx);
 
+      tr_drawBoard();
       var boardStatus;
       if(sketchlevel == "bond" || sketchlevel == "electron"){
         boardStatus = tr_checkBoard("grey");
@@ -949,13 +977,12 @@
       }
 
       if(boardStatus == true){
-        boardLevel = boardLevel + 1;
+        /*boardLevel = boardLevel + 1;
         sketchlevel = sLevels[boardLevel];
         boxes = [];
-        tr_setInstruction();
+        tr_setInstruction();*/
+        $("#nextButton").show();
       }
-
-      tr_drawBoard();
       points = [];
 
     }
@@ -1447,100 +1474,367 @@
 
     //Instructions
         function tr_setInstruction(){
+
           if(boardLevel == 1){
+            $("#nextButton").show();
             tr_drawBonds(numAtoms, atomCoordinates, "grey", "full");
-            var myNode = document.getElementById("trainingInstruction");
+            var myNode = document.getElementById("trainingInstruction1");
             while(myNode.firstChild){
               myNode.removeChild(myNode.firstChild);
             }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction2");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction3");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
 
             var para = document.createElement("P");
-            var t = document.createTextNode("Bonding regions are the spaces between atoms. Each line drawn represents one bond, and every bonding region can hold up to three bonds.");
+            var t = document.createTextNode("Bonding regions are the spaces between atoms.");
             para.appendChild(t);
             para.appendChild(document.createElement("br"));
             para.appendChild(document.createElement("br"));
 
-            t = document.createTextNode("One bond represents two electrons that are shared between the atoms it connects. Two bonds represents 4 shared electrons, and three bonds represents 6 shared electrons.");
+            document.getElementById("trainingInstruction1").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("Each bonding region can hold up to three bonds.");
             para.appendChild(t);
             para.appendChild(document.createElement("br"));
             para.appendChild(document.createElement("br"));
 
+            document.getElementById("trainingInstruction2").append(para);
+
+            var para = document.createElement("P");
             t = document.createTextNode("Draw a line over each grey bond until all bonds are blue.");
             para.appendChild(t);
             para.appendChild(document.createElement("br"));
             para.appendChild(document.createElement("br"));
 
-            document.getElementById("trainingInstruction").append(para);
+            document.getElementById("trainingInstruction3").append(para);
+
           }
           else if(boardLevel == 2){
+            $("#nextButton").show();
             tr_drawElectrons(numAtoms, atomCoordinates, "grey", "full");
             tr_drawCenterBonds();
-            var myNode = document.getElementById("trainingInstruction");
+            var myNode = document.getElementById("trainingInstruction1");
             while(myNode.firstChild){
               myNode.removeChild(myNode.firstChild);
             }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction2");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction3");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
 
             var para = document.createElement("P");
-            var t = document.createTextNode("Electron regions are the spaces around atoms. Electrons that are not shared between atoms are drawn in pairs, so every electron region can hold up to two electrons.");
+            var t = document.createTextNode("Electron regions are the spaces around each atom.");
             para.appendChild(t);
             para.appendChild(document.createElement("br"));
             para.appendChild(document.createElement("br"));
 
-            t = document.createTextNode("One dot represents one electron for the atom it is next to.");
+            document.getElementById("trainingInstruction1").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("Each electron region can hold up to two electrons.");
             para.appendChild(t);
             para.appendChild(document.createElement("br"));
             para.appendChild(document.createElement("br"));
 
-            t = document.createTextNode("Draw an electron over each grey electron until all electrons are blue.");
+            document.getElementById("trainingInstruction2").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("Draw a small circle over each grey electron until all electrons are blue.");
             para.appendChild(t);
             para.appendChild(document.createElement("br"));
             para.appendChild(document.createElement("br"));
 
-            document.getElementById("trainingInstruction").append(para);
+            document.getElementById("trainingInstruction3").append(para);
 
           }
           else if(boardLevel == 3){
+            $("#nextButton").show();
             tr_drawBonds(numAtoms, atomCoordinates, "blue", "full");
             tr_drawElectrons(numAtoms, atomCoordinates, "blue", "full");
-            var myNode = document.getElementById("trainingInstruction");
+            var myNode = document.getElementById("trainingInstruction1");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction2");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction3");
             while(myNode.firstChild){
               myNode.removeChild(myNode.firstChild);
             }
 
+
             var para = document.createElement("P");
-            var t = document.createTextNode("Electrons and bonds and be removed by scribbling over them.");
+            var t = document.createTextNode("Bonds and electrons can be removed by scribbling over them.");
             para.appendChild(t);
             para.appendChild(document.createElement("br"));
             para.appendChild(document.createElement("br"));
 
+            document.getElementById("trainingInstruction1").append(para);
+
+            var para = document.createElement("P");
             t = document.createTextNode("Scribble over each bond and electron until they all turn grey.");
             para.appendChild(t);
             para.appendChild(document.createElement("br"));
             para.appendChild(document.createElement("br"));
 
-            document.getElementById("trainingInstruction").append(para);
+            document.getElementById("trainingInstruction2").append(para);
+
+
 
           }
           else if(boardLevel == 4){
+            $("#nextButton").hide();
             tr_drawBonds(numAtoms, atomCoordinates, "black", "half");
+            //tr_drawElectrons(numAtoms, atomCoordinates, "black", "half");
+            var myNode = document.getElementById("trainingInstruction1");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction2");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction3");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+
+
+            var para = document.createElement("P");
+            var t = document.createTextNode("Bonds can be moved by circling and redrawing them.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction1").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("Bonds can only be moved to other bonding regions (between atoms)");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction2").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("Circle each bond and redraw them at another location.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction3").append(para);
+
+
+          }
+          else if(boardLevel == 5){
+
+            $("#nextButton").hide();
             tr_drawElectrons(numAtoms, atomCoordinates, "black", "half");
-            var myNode = document.getElementById("trainingInstruction");
+            var myNode = document.getElementById("trainingInstruction1");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction2");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction3");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+
+
+            var para = document.createElement("P");
+            var t = document.createTextNode("Electrons can be moved by circling and redrawing them.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction1").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("Single electrons can only be moved to other electron regions (around atoms)");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction2").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("Circle each election and redraw them at another location.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction3").append(para);
+
+          }
+          else if(boardLevel == 6){
+            $("#nextButton").show();
+            canvas.removeEventListener("mousedown",tr_sketchpad_mouseDown);
+            canvas.removeEventListener("mousemove",tr_sketchpad_mouseMove);
+            window.removeEventListener("mouseup",tr_sketchpad_mouseUp);
+
+            canvas.removeEventListener("touchstart",tr_sketchpad_touchStart);
+            canvas.removeEventListener("touchend",tr_sketchpad_touchEnd);
+            canvas.removeEventListener("touchmove",tr_sketchpad_touchMove);
+
+            // React to mouse events on the canvas, and mouseup on the entire document
+            canvas.addEventListener('mousedown', sketchpad_mouseDown, false);
+            canvas.addEventListener('mousemove', sketchpad_mouseMove, false);
+            window.addEventListener('mouseup', sketchpad_mouseUp, false);
+
+            // React to touch events on the canvas
+            canvas.addEventListener('touchstart', sketchpad_touchStart, false);
+            canvas.addEventListener('touchend', sketchpad_touchEnd, false);
+            canvas.addEventListener('touchmove', sketchpad_touchMove, false);
+
+            addAtoms(3, "O", "H H", "822", "611", "H2O");
+            drawRegions();
+            addElectrons();
+            drawBoard();
+            var myNode = document.getElementById("trainingInstruction1");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction2");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction3");
             while(myNode.firstChild){
               myNode.removeChild(myNode.firstChild);
             }
 
             var para = document.createElement("P");
-            var t = document.createTextNode("Electrons and bonds and be moved by circling them.");
+            var t = document.createTextNode("Single electrons can only be moved to electron regions. Two electrons, however, can be moved together to form a bond.");
             para.appendChild(t);
             para.appendChild(document.createElement("br"));
             para.appendChild(document.createElement("br"));
 
-            t = document.createTextNode("Circle each bond and electron and redraw them until they all turn blue.");
+            document.getElementById("trainingInstruction1").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("Circle a pair of electrons, and see what happens when you redraw them in the bonding regions vs the electron regions");
             para.appendChild(t);
             para.appendChild(document.createElement("br"));
             para.appendChild(document.createElement("br"));
 
-            document.getElementById("trainingInstruction").append(para);
+            document.getElementById("trainingInstruction2").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("The 'X' that appears on the top right corner when you start a move can be used to cancel the move. When you are ready to move on, click 'NEXT' ");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction3").append(para);
+
+
+          }
+          else if(boardLevel == 7){
+
+            $("#nextButton").show();
+            var version = getVersion();
+            if(version == "techNo"){
+              canvas.removeEventListener("mousedown",tr_sketchpad_mouseDown);
+              canvas.removeEventListener("mousemove",tr_sketchpad_mouseMove);
+              window.removeEventListener("mouseup",tr_sketchpad_mouseUp);
+
+              canvas.removeEventListener("touchstart",tr_sketchpad_touchStart);
+              canvas.removeEventListener("touchend",tr_sketchpad_touchEnd);
+              canvas.removeEventListener("touchmove",tr_sketchpad_touchMove);
+
+              // React to mouse events on the canvas, and mouseup on the entire document
+              canvas.addEventListener('mousedown', sketchpad_mouseDown, false);
+              canvas.addEventListener('mousemove', sketchpad_mouseMove, false);
+              window.addEventListener('mouseup', sketchpad_mouseUp, false);
+
+              // React to touch events on the canvas
+              canvas.addEventListener('touchstart', sketchpad_touchStart, false);
+              canvas.addEventListener('touchend', sketchpad_touchEnd, false);
+              canvas.addEventListener('touchmove', sketchpad_touchMove, false);
+            }
+            var myNode = document.getElementById("trainingInstruction1");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction2");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+            myNode.className = "incorrectBox resultBox";
+
+            myNode = document.getElementById("trainingInstruction3");
+            while(myNode.firstChild){
+              myNode.removeChild(myNode.firstChild);
+            }
+
+            var para = document.createElement("P");
+            var t = document.createTextNode("The information above tells you how many electrons are available to work with, and how many electrons each atom needs for the final drawing.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction1").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("Each bond you draw represents two electrons. As you draw, count how many electrons you are using to make sure you reach the correct total. After drawing, make sure each atom is connected to the correct number of electrons it needs.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction2").append(para);
+
+            var para = document.createElement("P");
+            t = document.createTextNode("A 'CHECK' button will be available for you to help you reach the correct drawing.");
+            para.appendChild(t);
+            para.appendChild(document.createElement("br"));
+            para.appendChild(document.createElement("br"));
+
+            document.getElementById("trainingInstruction3").append(para);
+
           }
 
 
