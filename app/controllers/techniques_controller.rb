@@ -14,6 +14,7 @@ class TechniquesController < ApplicationController
     t.session = params["id"]
     t.molecule = params["molecule"]
     t.techType = params["type"]
+    t.time = params["time"]
 
     t.save
 

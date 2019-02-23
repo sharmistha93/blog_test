@@ -442,8 +442,10 @@
           else{
             if((box.electronX > boundXmin) && (box.electronX < boundXmax)){
               if((box.electronY > boundYmin) && (box.electronY < boundYmax)){
-                movedBox = i;
-                return i;
+                if(box.full == true){
+                  movedBox = i;
+                  return i;
+                }
               }
             }
           }
@@ -1476,7 +1478,7 @@
         function tr_setInstruction(){
 
           if(boardLevel == 1){
-            $("#nextButton").show();
+            $("#nextButton").hide();
             tr_drawBonds(numAtoms, atomCoordinates, "grey", "full");
             var myNode = document.getElementById("trainingInstruction1");
             while(myNode.firstChild){
@@ -1522,7 +1524,7 @@
 
           }
           else if(boardLevel == 2){
-            $("#nextButton").show();
+            $("#nextButton").hide();
             tr_drawElectrons(numAtoms, atomCoordinates, "grey", "full");
             tr_drawCenterBonds();
             var myNode = document.getElementById("trainingInstruction1");
@@ -1569,7 +1571,7 @@
 
           }
           else if(boardLevel == 3){
-            $("#nextButton").show();
+            $("#nextButton").hide();
             tr_drawBonds(numAtoms, atomCoordinates, "blue", "full");
             tr_drawElectrons(numAtoms, atomCoordinates, "blue", "full");
             var myNode = document.getElementById("trainingInstruction1");
@@ -1724,7 +1726,7 @@
             canvas.addEventListener('touchend', sketchpad_touchEnd, false);
             canvas.addEventListener('touchmove', sketchpad_touchMove, false);
 
-            addAtoms(3, "O", "H H", "822", "611", "H2O");
+            addAtoms(3, "O", "H H", "822", "611", "H2O", 'x', '0 0 0');
             drawRegions();
             addElectrons();
             drawBoard();
@@ -1773,7 +1775,8 @@
           }
           else if(boardLevel == 7){
 
-            $("#nextButton").show();
+            $("#nextButton").hide();
+            $("#startButton").show();
             var version = getVersion();
             if(version == "techNo"){
               canvas.removeEventListener("mousedown",tr_sketchpad_mouseDown);
@@ -1895,6 +1898,15 @@
             boardLevel = 1;
             sketchlevel = sLevels[boardLevel];
             tr_setInstruction();
+            $("#startButton").hide();
+
+            canvas.removeEventListener("mousedown", sketchpad_mouseDown);
+            canvas.removeEventListener("mousemove",sketchpad_mouseMove);
+            window.removeEventListener("mouseup", sketchpad_mouseUp);
+
+            canvas.removeEventListener("touchstart", sketchpad_touchStart);
+            canvas.removeEventListener("touchend", sketchpad_touchEnd);
+            canvas.removeEventListener("touchmove", sketchpad_touchMove);
 
             // React to mouse events on the canvas, and mouseup on the entire document
             canvas.addEventListener('mousedown', tr_sketchpad_mouseDown, false);

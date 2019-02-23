@@ -7,29 +7,33 @@
         <div class="col-md-5">
           <h2>chemisketch</h2>
         </div>
-        <div class="col-md-3 buttonSection">
-            <%= link_to "TUTORIAL", sketchtrainings_path, class: "menuButton"%>
-        </div>
 </div>
 
 <div class ="moleculeSelectorSection">
   <div id="myModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <p id="currentSession"></p>
-    <p id="errorSession"></p>
-    <form>
-      Change Session ID: <input type="text" id="newSession" name="sessionid"><br>
-      Select Version:
-      <select id="version" name="version">
-        <option value="techYes">Techniques Enabled</option>
-        <option value="techNo">Undo Enabled</option>
-      </select>
-      <input class = "modal-button" type="button" onclick="changeSession()" value="Submit">
-    </form>
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p id="currentSession"></p>
+      <p id="errorSession"></p>
+      <form>
+        Change Session ID: <input type="text" id="newSession" name="sessionid"><br>
+        Select Version:
+        <select id="version" name="version">
+          <option value="techYes">Techniques Enabled</option>
+          <option value="techNo">Undo Enabled</option>
+        </select>
+        <input class = "modal-button" type="button" onclick="changeSession()" value="Submit">
+      </form>
+    </div>
   </div>
 
-</div>
+  <div id="myModal2" class="modal">
+    <div class="modal-content">
+      <div class="col-md-3 buttonSection">
+          <%= link_to "BEGIN TUTORIAL", sketchtrainings_path, class: "menuButton"%>
+      </div>
+    </div>
+  </div>
 
 	<div class="row">
 

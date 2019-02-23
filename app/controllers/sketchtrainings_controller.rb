@@ -3,7 +3,8 @@ class SketchtrainingsController < ApplicationController
 
 		def index
   		@sketchtrainings = Sketchtraining.all
-
+			@molecules = Molecule.all
+			@molecule = @molecules[0]
   	end
 
   	def new

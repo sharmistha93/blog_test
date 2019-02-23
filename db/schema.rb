@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_01_22_204311) do
+ActiveRecord::Schema.define(version: 2019_02_22_230648) do
 
   create_table "molecules", force: :cascade do |t|
     t.string "name"
@@ -23,6 +23,8 @@ ActiveRecord::Schema.define(version: 2019_01_22_204311) do
     t.string "fullElectrons"
     t.string "availElectrons"
     t.string "donestatus"
+    t.string "charge"
+    t.string "formalCharges"
   end
 
   create_table "posts", force: :cascade do |t|

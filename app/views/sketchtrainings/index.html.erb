@@ -3,9 +3,7 @@
           <div class="col-md-8">
             <h2>tutorial</h2>
           </div>
-          <div class="col-md-3 buttonSection">
-              <%= link_to "BACK", root_path, class: "menuButton", id: "backToHome"%>
-          </div>
+
   </div>
  <div class="row" id="sketchpadapp">
 
@@ -40,6 +38,9 @@
         <div class = "row" id="nextButton">
           <input class="button" type="submit" value="NEXT" onclick="nextTutorial();">
         </div>
+        <div class = "row" id="startButton">
+          <%= link_to "START", @molecule, class: "backButton", id: "backToHome"%>
+        </div>
     </div>
 
  </div>
@@ -49,8 +50,6 @@
   $(document).ready(function () {
 
     window.onload = training_init();
-
-
 
 
     <% @sketchtrainings.each do |sketchtraining| %>

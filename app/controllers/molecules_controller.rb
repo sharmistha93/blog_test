@@ -7,21 +7,21 @@ class MoleculesController < ApplicationController
   		@molecules = Molecule.all
 			if((params["s_id"]).nil? == false)
 				@sessionID = (params["s_id"])
-				@version = (params["version"])
+				$version = (params["version"])
 
 				puts "session saved"
 				session[:current_sID] = @sessionID
 				session[:current_version] = @version
 			elsif(session[:current_sID].nil? == false)
 				@sessionID = session[:current_sID]
-				@version = session[:current_version]
+				$version = session[:current_version]
 			else
 				@sessionID = ""
-				@version = ""
+				$version = ""
 			end
 
 			puts @sessionID
-			puts @version
+			puts $version
   end
 
   def show
@@ -30,7 +30,8 @@ class MoleculesController < ApplicationController
 		@othAtoms = @molecule.other_atoms.to_s
 		@fullElectrons = @molecule.fullElectrons.to_s
 		@availElectrons = @molecule.availElectrons.to_s
-
+		@charge = @molecule.charge.to_s
+		@formalCharges = @molecule.formalCharges.to_s
   end
 
 	def create
@@ -57,7 +58,7 @@ class MoleculesController < ApplicationController
 
 	def train_sketch
 		@trainings = Sketchtraining.all
-
+		
 		training = []
 		for t in @trainings
 			newTraining = [t.cosineStartAngle, t.sineStartAngle, t.bbDiagLen, t.bbDiagAngle, t.startEndDist, t.startEndCosineAngle, t.startEndSineAngle, t.strokeLength, t.angleTrav9, t.angleTrav10, t.angleTrav11, t.maxSpeed, t.pathDuration, t.interpretation]

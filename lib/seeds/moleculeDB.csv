@@ -1,17 +1,20 @@
-name,central_atom,other_atoms,num_atoms,formula,fullElectrons,availElectrons,doneStatus
-Water,O,H H,3,H2O,822,611,falsebox
-Ozone,O,O,2,O2,88,66,falsebox
-Carbon Dioxide,C,O O,3,CO2,888,466,falsebox
-Hydrogen Cyanide,C,H N,3,HCN,828,415,falsebox
-Hydrofluoric Acid,F,H,2,HF,82,71,falsebox
-Formaldehyde,C,H H O,4,CH2O,8228,4116,falsebox
-Ammonia,N,H H H,4,NH3,8222,5111,falsebox
-Borane,B,H H H,4,BH3,6222,3111,falsebox
-Methane,C,H H H H,5,CH3,82222,41111,falsebox
-Oxygen Difluoride,O,F F,3,OF2,888,677,falsebox
-Boran Trifluoride,B,F F F,4,BF3,6888,3777,falsebox
-Carbon Disulfide,C,S S,3,CS2,888,466,falsebox
-Sulfur Trioxide,S,O O O,4,SO3,8888,6666,falsebox
-Carbon Monoxide,O,C,2,CO,88,64,falsebox
-Nitrogen,N,N,2,N2,88,55,falsebox
-Hydrochloric Acid,Cl,H,2,HCl,82,71,falsebox
+name,central_atom,other_atoms,num_atoms,formula,fullElectrons,availElectrons,doneStatus,charge,formalCharges
+Water,O,H H,3,H2O,822,611,falsebox,x,0 0 0
+Ozone,O,O,2,O2,88,66,falsebox,x,0 0
+Carbon Dioxide,C,O O,3,CO2,888,466,falsebox,x,0 0 0
+Hydrogen Cyanide,C,H N,3,HCN,828,415,falsebox,x,0 0 0
+Hydrofluoric Acid,F,H,2,HF,82,71,falsebox,x,0 0
+Formaldehyde,C,H H O,4,CH2O,8228,4116,falsebox,x,0 0 0 0
+Ammonia,N,H H H,4,NH3,8222,5111,falsebox,x,0 0 0 0
+Borane,B,H H H,4,BH3,6222,3111,falsebox,x,0 0 0 0
+Methane,C,H H H H,5,CH3,82222,41111,falsebox,x,0 0 0 0 0
+Oxygen Difluoride,O,F F,3,OF2,888,677,falsebox,x,0 0 0
+Boran Trifluoride,B,F F F,4,BF3,6888,3777,falsebox,x,0 0 0 0
+Carbon Disulfide,C,S S,3,CS2,888,466,falsebox,x,0 0 0
+Carbon Monoxide,O,C,2,CO,88,64,falsebox,x,1 -1
+Nitrogen,N,N,2,N2,88,55,falsebox,x,0 0
+Hydrochloric Acid,Cl,H,2,HCl,82,71,falsebox,x,0 0
+Hypochlorite,O,Cl,2,ClO-,88,671,falsebox,n,0 -1
+Hydronium,O,H H H,4,H3O+,8222,6111,falsebox,p,1 0 0 0
+Tetrahydroborate,B,H H H H,5,BH4-,82222,31111,falsebox,n,-1 0 0 0 0
+Nitrogen Dioxide,N,O O,3,NO2-,888,566,falsebox,n,0 0 -1

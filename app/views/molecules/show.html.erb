@@ -35,8 +35,16 @@
         <div class="row resultBox" id="result3">
 
         </div>
-        <div class="backButtonSection">
-          <%= link_to "BACK", root_path, class: "backButton", id: "backToHome"%>
+        <div class="row resultBox" id="result4">
+
+        </div>
+        
+        <div class="backButtonSection" id="doneButton">
+          <% if (@molecule.next_molecule) %>
+            <%= link_to "NEXT", @molecule.next_molecule, class: "backButton", id: "backToHome"%>
+          <% else %>
+            <%= link_to "NEXT", root_path, class: "backButton", id: "backToHome"%>
+          <% end %>
         </div>
     </div>
 
@@ -71,9 +79,10 @@
     var fullElec = "<%= @fullElectrons %>";
     var availElec = "<%= @availElectrons %>";
     var molecule = "<%= @molecule.formula %>";
+    var charge = "<%= @charge %>";
+    var formalCharges = "<%= @formalCharges %>";
 
-
-    addAtoms(numberAtoms, centralAtom, otherAtoms, fullElec, availElec, molecule);
+    addAtoms(numberAtoms, centralAtom, otherAtoms, fullElec, availElec, molecule, charge, formalCharges);
     drawRegions();
 
 });

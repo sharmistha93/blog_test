@@ -21,8 +21,10 @@ csv.each do |row|
   t.fullElectrons = row['fullElectrons']
   t.availElectrons = row['availElectrons']
   t.donestatus = row['doneStatus']
+  t.charge = row['charge']
+  t.formalCharges = row['formalCharges']
   t.save
-  puts "#{t.name}, #{t.central_atom}, #{t.other_atoms}, #{t.num_atoms}, #{t.formula}, #{t.fullElectrons}, #{t.availElectrons}, saved"
+  puts "#{t.name}, #{t.central_atom}, #{t.other_atoms}, #{t.num_atoms}, #{t.formula}, #{t.fullElectrons}, #{t.availElectrons}, #{t.charge}, saved"
 end
 
 puts "There are now #{Molecule.count} rows in the transactions table"
