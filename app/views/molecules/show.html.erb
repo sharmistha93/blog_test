@@ -38,7 +38,7 @@
         <div class="row resultBox" id="result4">
 
         </div>
-        
+
         <div class="backButtonSection" id="doneButton">
           <% if (@molecule.next_molecule) %>
             <%= link_to "NEXT", @molecule.next_molecule, class: "backButton", id: "backToHome"%>
@@ -72,6 +72,9 @@
     myCanvas.width = document.documentElement.clientWidth*(9/20);
 
     myCanvas.height = document.documentElement.clientHeight*(3/4);
+    var d = new Date();
+
+
 
 	  var numberAtoms = <%= @numAtoms %>;
     var centralAtom = "<%= @cenAtom %>";
@@ -81,6 +84,23 @@
     var molecule = "<%= @molecule.formula %>";
     var charge = "<%= @charge %>";
     var formalCharges = "<%= @formalCharges %>";
+
+    var technique = {
+      id: sessionID,
+      molecule: molecule,
+      time: d.getTime(),
+      type: "start",
+    };
+    $.ajax({
+      method: "POST",
+      url: "/techniques",
+      dataType:"json",
+      data: technique,
+      success: function(result){
+        console.log("start recorded");
+      }
+
+    });
 
     addAtoms(numberAtoms, centralAtom, otherAtoms, fullElec, availElec, molecule, charge, formalCharges);
     drawRegions();

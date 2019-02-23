@@ -1726,7 +1726,18 @@
             canvas.addEventListener('touchend', sketchpad_touchEnd, false);
             canvas.addEventListener('touchmove', sketchpad_touchMove, false);
 
-            addAtoms(3, "O", "H H", "822", "611", "H2O", 'x', '0 0 0');
+            $.ajax({
+              method: "GET",
+              url: "/molecules/0",
+              dataType:"json",
+              data: "test",
+              success: function(result){
+                console.log("trained?");
+              }
+
+            });
+
+            addAtoms(3, "O", "H H", "822", "611", "XXX", 'x', '0 0 0');
             drawRegions();
             addElectrons();
             drawBoard();
