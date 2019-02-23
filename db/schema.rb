@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_02_22_230648) do
+ActiveRecord::Schema.define(version: 2019_02_23_234150) do
 
   create_table "molecules", force: :cascade do |t|
     t.string "name"
@@ -56,7 +56,7 @@ ActiveRecord::Schema.define(version: 2019_02_22_230648) do
   create_table "techniques", force: :cascade do |t|
     t.string "session"
     t.string "molecule"
-    t.integer "time"
+    t.integer "time", limit: 8
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "techType"
