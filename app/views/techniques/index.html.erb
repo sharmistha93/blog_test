@@ -1,10 +1,19 @@
+
 <div class="techniqueTable">
-  <h2>Technique Records</h2>
+  <div class="row">
+    <div class="col-md-8">
+      <h2>Technique Records</h2>
+    </div>
+    <div class="col-md-4">
+      <input class="button" type="submit" value="SAVE" onclick="saveTechniques();">
+    </div>
+  </div>
   <table>
     <tr>
       <th>Session ID</th>
       <th>Molecule</th>
       <th>Type</th>
+      <th>Time</th>
     </tr>
     <% @techniques.each do |technique| %>
     <tr>
@@ -17,3 +26,21 @@
 
   </table>
 </div>
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    var techSaved = [];
+    <% @techniques.each do |technique| %>
+      var techObject = {
+        session: "<%= technique.session %>",
+        molecule: "<%= technique.molecule %>",
+        type: "<%= technique.techType %>",
+        time: <%= technique.time %>,
+      };
+      techSaved.push(techObject)
+    <% end %>
+    techInit(techSaved);
+
+  });
+
+</script>
