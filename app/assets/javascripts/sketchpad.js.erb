@@ -294,6 +294,46 @@
       }
     }
 
+    function drawSolution() {
+      for(i=0; i<2; i++){
+        var box = boxes[i];
+        var regions = box.regions;
+        regions[1].fill = true;
+        regions[1].color = "blue";
+        box.count = box.count+1;
+      }
+
+      for(i=2; i<4; i++){
+        var box = boxes[i];
+        var regions = box.regions;
+        var regions = box.regions;
+        for(j=0; j<regions.length; j++){
+          var regionNum = j;
+          regions[regionNum].fill = true;
+          regions[regionNum].color = "blue";
+          box.count = box.count+1;
+        }
+      }
+
+      r=211; g=217; b=240; a=226;
+
+      ctx.strokeStyle = "rgba("+r+","+g+","+b+","+(a/255)+")";
+      ctx.lineCap = "round";
+      ctx.lineWidth = 1;
+      ctx.fillStyle = "#d3d9e2";
+
+      ctx.beginPath();
+
+      ctx.font = "10px Montserrat";
+      ctx.fillStyle = "black";
+      ctx.textAlign = "center";
+      ctx.fillText("H needs 2 electrons and H is connected to 2 electrons", 270, 100);
+      ctx.fillText("O needs 8 electrons and O is connected to 8 electrons", 270, 125);
+      ctx.fillText("H needs 2 electrons and H is connected to 2 electrons", 270, 150);
+      ctx.fillText("A total of 8 electrons are used", 270, 175);
+      ctx.closePath();
+    }
+
     function updateAtoms(){
       console.log("updating atoms");
       var atomsCount = [];
@@ -2178,6 +2218,7 @@
 
     function addAtoms(num, central_atom, other_atoms, octet_count, electron_count, formula, chrg, formal_charges) {
         console.log("adding atoms..");
+        atoms = [];
         numAtoms = num;
         centralAtom = central_atom;
         otherAtoms = other_atoms;

@@ -1019,10 +1019,6 @@
     }
 
 
-
-
-
-
 // Molecule Sketch
     function tr_drawAtom(atomX, atomY, letter) {
         r=45; g=188; b=240; a=255;
@@ -1789,8 +1785,11 @@
             $("#nextButton").hide();
             $("#startButton").show();
 
+            tr_clearCanvas(canvas, ctx);
+            clearCanvas(canvas,ctx, -1);
             addAtoms(3, "O", "H H", "822", "611", "XXX", 'x', '0 0 0');
-
+            drawRegions();
+            drawSolution();
             drawBoard();
             var version = getVersion();
             if(version == "techNo"){
