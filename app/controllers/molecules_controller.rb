@@ -1,7 +1,7 @@
 class MoleculesController < ApplicationController
 
 	before_action :find_molecule, only: [:show]
-	before_action :train_sketch, only: [:show]
+	before_action :train_sketch, only: [:show, :new]
 
 	def index
   		@molecules = Molecule.all
@@ -52,13 +52,17 @@ class MoleculesController < ApplicationController
 
 	end
 
+	def new
+
+	end
+
   def find_molecule
   		@molecule = Molecule.find(params[:id])
  	end
 
 	def train_sketch
 		@trainings = Sketchtraining.all
-		
+
 		training = []
 		for t in @trainings
 			newTraining = [t.cosineStartAngle, t.sineStartAngle, t.bbDiagLen, t.bbDiagAngle, t.startEndDist, t.startEndCosineAngle, t.startEndSineAngle, t.strokeLength, t.angleTrav9, t.angleTrav10, t.angleTrav11, t.maxSpeed, t.pathDuration, t.interpretation]
