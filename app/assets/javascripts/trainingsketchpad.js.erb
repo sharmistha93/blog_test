@@ -1788,6 +1788,10 @@
 
             $("#nextButton").hide();
             $("#startButton").show();
+
+            addAtoms(3, "O", "H H", "822", "611", "XXX", 'x', '0 0 0');
+
+            drawBoard();
             var version = getVersion();
             if(version == "techNo"){
               canvas.removeEventListener("mousedown",tr_sketchpad_mouseDown);
