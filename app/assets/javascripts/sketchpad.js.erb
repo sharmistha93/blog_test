@@ -1139,6 +1139,26 @@
         updateAtoms();
 
       }
+
+      var d = new Date();
+
+      var technique = {
+        id: sessionID,
+        molecule: moleculeFormula,
+        time: d.getTime(),
+        type: "undo",
+      };
+      $.ajax({
+        method: "POST",
+        url: "/techniques",
+        dataType:"json",
+        data: technique,
+        success: function(result){
+          console.log("undo recorded");
+        }
+
+      });
+
       clearCanvas(canvas,ctx, 1);
       drawBoard();
 
