@@ -12,9 +12,12 @@ Oxygen Difluoride,O,F F,3,OF2,888,677,falsebox,x,0 0 0
 Boran Trifluoride,B,F F F,4,BF3,6888,3777,falsebox,x,0 0 0 0
 Carbon Disulfide,C,S S,3,CS2,888,466,falsebox,x,0 0 0
 Carbon Monoxide,O,C,2,CO,88,64,falsebox,x,1 -1
+Nitrosyl Chloride,N,O Cl,3,NOCl,888,567,falsebox,x,0 0 0
 Nitrogen,N,N,2,N2,88,55,falsebox,x,0 0
 Hydrochloric Acid,Cl,H,2,HCl,82,71,falsebox,x,0 0
 Hypochlorite,O,Cl,2,ClO-,88,671,falsebox,n,0 -1
 Hydronium,O,H H H,4,H3O+,8222,6111,falsebox,p,1 0 0 0
 Tetrahydroborate,B,H H H H,5,BH4-,82222,31111,falsebox,n,-1 0 0 0 0
 Nitrogen Dioxide,N,O O,3,NO2-,888,566,falsebox,n,0 0 -1
+Formate,C,O H O,4,CHO2-,8828,4616,falsebox,n,0 0 0 -1
+Nitrosonium,N,O,2,NO+,88,56,falsebox,p,0 1
