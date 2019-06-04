@@ -309,15 +309,18 @@
 
     }
 
-    function tr_downloadCSV(args){
+    function tr_downloadCSV(trainingSketches){
+
+        console.log("download CSV training");
+        console.log(sketches);
 
         var data, filename, link;
         var csv = tr_convertTrainingCSV({
-            data: sketches
+            data: trainingSketches
         });
         if (csv == null) return;
 
-        filename = args.filename || 'export.csv';
+        filename = 'export.csv';
 
         if (!csv.match(/^data:text\/csv/i)) {
             csv = 'data:text/csv;charset=utf-8,' + csv;
@@ -1786,7 +1789,7 @@
             $("#startButton").show();
 
             tr_clearCanvas(canvas, ctx);
-            
+
             addAtoms(3, "O", "H H", "822", "611", "XXX", 'x', "0 0 0");
             drawRegions();
             drawSolution();

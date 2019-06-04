@@ -12,7 +12,9 @@ class SketchtrainingsController < ApplicationController
 			@sketchtraining = Sketchtraining.new
   	end
 
-
+		def show
+			@sketchtrainings = Sketchtraining.all
+		end
 
   	def create
 			puts "sketchtraining create hit"

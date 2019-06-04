@@ -1,0 +1,30 @@
+
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    var allTrainings = [];
+    <% @sketchtrainings.each do |training| %>
+      var trainingObject = {
+        cosineStartAngle: <%= training.cosineStartAngle %>,
+        sineStartAngle: <%= training.sineStartAngle %>,
+        BBDiagLen: <%= training.bbDiagLen %>,
+        BBDiagAngle: <%= training.bbDiagAngle %>,
+        startEndDist: <%= training.startEndDist %>,
+        startEndCosineAngle: <%= training.startEndCosineAngle %>,
+        startEndSineAngle: <%= training.startEndSineAngle %>,
+        strokeLength: <%= training.strokeLength %>,
+        angleTrav9: <%= training.angleTrav9 %>,
+        angleTrav10: <%= training.angleTrav10 %>,
+        angleTrav11: <%= training.angleTrav11 %>,
+        maxSpeed: <%= training.maxSpeed %>,
+        pathDuration: <%= training.pathDuration %>,
+        interpretation: "<%= training.interpretation %>",
+      };
+      allTrainings.push(trainingObject)
+    <% end %>
+
+    tr_downloadCSV(allTrainings);
+
+  });
+
+</script>
